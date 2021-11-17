@@ -1,0 +1,37 @@
+name: chatapp
+description: A new Flutter project.
+publish_to: "none"
+version: 1.0.0+1
+
+environment:
+  sdk: ">=2.7.0 <3.0.0"
+
+dependencies:
+  cloud_firestore: null
+  connectivity: ^0.4.9
+  feather_icons_flutter: ^4.7.4
+  firebase_auth: null
+  firebase_core: null
+  firebase_storage: null
+  flutter:
+    sdk: flutter
+  google_fonts: ^1.1.0
+  shared_preferences: ^0.5.6+3
+  url_launcher: ^5.5.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  fluttertoast: ^7.1.1
+  sqflite: ^2.0.0+4
+
+flutter:
+  uses-material-design: true
+  assets:
+    - assets/images/
+    - assets/icons/
+    # fonts:
+    # - family: Averta
+    #   fonts:
+    #     - asset: assets/fonts/Averta_Bold.otf
+    #     - asset: assets/fonts/Averta_Regular.otf
