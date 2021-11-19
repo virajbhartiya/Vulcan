@@ -1,5 +1,9 @@
 // ignore_for_file: await_only_futures
 
+import 'dart:io';
+import 'package:chatapp/widget/messageTile.dart';
+import 'package:firebase_storage/firebase_storage.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:chatapp/database/database.dart';
 import 'package:chatapp/models/message.dart';
 import 'package:flutter/cupertino.dart';
@@ -7,9 +11,10 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:feather_icons_flutter/feather_icons_flutter.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:url_launcher/url_launcher.dart';
 import '../helper/constants.dart';
 import '../helper/firebase_helper.dart';
+import 'package:cached_network_image/cached_network_image.dart';
+import 'package:path/path.dart' as p;
 
 class Chat extends StatefulWidget {
   final String chatRoomId;
@@ -30,6 +35,10 @@ class _ChatState extends State<Chat> with TickerProviderStateMixin {
   DatabaseSQL db;
   int id = 0;
   List<Message> messagesList = [];
+  File _imageFile;
+  String imageUrl;
+  bool uploading = false;
+  final picker = ImagePicker();
 
   @override
   void initState() {
@@ -52,7 +61,46 @@ class _ChatState extends State<Chat> with TickerProviderStateMixin {
     super.initState();
   }
 
-  fetchMessages() async {
+  Future pickFile(context, type) async {
+    var pickedFile;
+    switch (type) {
+      case 'cameraPhoto':
+        pickedFile = await picker.getImage(source: ImageSource.camera);
+        break;
+      case 'galleryPhoto':
+        pickedFile = await picker.getImage(source: ImageSource.gallery);
+        break;
+    }
+
+    setState(() {
+      uploading = true;
+      _imageFile = File(pickedFile.path);
+      print(_imageFile);
+
+      uploadImageToFirebase(context);
+    });
+  }
+
+  Future uploadImageToFirebase(BuildContext context) async {
+    String fileName = _imageFile.path.split('/').last;
+    StorageReference firebaseStorageRef =
+        FirebaseStorage.instance.ref().child('uploads/$fileName');
+    StorageUploadTask uploadTask = firebaseStorageRef.putFile(_imageFile);
+    StorageTaskSnapshot taskSnapshot = await uploadTask.onComplete;
+    taskSnapshot.ref.getDownloadURL().then((value) {
+      setState(() {
+        imageUrl = value;
+      });
+      addMessage(value);
+      setState(() {
+        uploading = false;
+      });
+      print("Done: $value");
+      print(messagesList);
+    });
+  }
+
+  Future fetchMessages() async {
     db = await new DatabaseSQL(sender);
     var msgList = await db.getMessages(sender);
     setState(() {
@@ -60,7 +108,7 @@ class _ChatState extends State<Chat> with TickerProviderStateMixin {
     });
   }
 
-  updateList(snapshot, index) async {
+  Future updateList(snapshot, index) async {
     try {
       if (index < snapshot.data.documents.length) {
         if (!(Constants.myName ==
@@ -81,6 +129,9 @@ class _ChatState extends State<Chat> with TickerProviderStateMixin {
               id: id++);
 
           db.insertMessage(message).then((value) {
+            // if (snapshot.data.documents[index].data["mediaUrl"].length > 0) {
+            //   deletMedia(snapshot.data.documents[index].data["mediaUrl"]);
+            // }
             Firestore.instance
                 .collection("chatRoom")
                 .document(widget.chatRoomId)
@@ -123,55 +174,115 @@ class _ChatState extends State<Chat> with TickerProviderStateMixin {
                   : Container();
             },
           ),
-          StreamBuilder(
-            stream: chats,
-            builder: (context, snapshot) {
-              return ListView.builder(
-                reverse: false,
-                shrinkWrap: true,
-                controller: _scrollController,
-                itemCount: messagesList.length ?? 0 - 1,
-                itemBuilder: (context, index) {
-                  return MessageTile(
-                      message: messagesList[index].message,
-                      sendByMe: Constants.myName == messagesList[index].sender);
-                },
-              );
-            },
+          SingleChildScrollView(
+            scrollDirection: Axis.vertical,
+            child: StreamBuilder(
+              stream: chats,
+              builder: (context, snapshot) {
+                return ListView.builder(
+                  reverse: false,
+                  shrinkWrap: true,
+                  scrollDirection: Axis.vertical,
+                  controller: _scrollController,
+                  itemCount: messagesList.length ?? 0 - 1,
+                  itemBuilder: (context, index) {
+                    return (messagesList[index].mediaType ?? "none") == "none"
+                        ? MessageTile(
+                            message: messagesList[index].message,
+                            sendByMe:
+                                Constants.myName == messagesList[index].sender)
+                        : Container(
+                            height: 201,
+                            width: 200,
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(10),
+                              color: Colors.grey[200],
+                            ),
+                            child: ClipRRect(
+                              borderRadius: BorderRadius.circular(10),
+                              child: CachedNetworkImage(
+                                height: 200,
+                                width: 200,
+                                imageUrl: messagesList[index].mediaUrl,
+                                fit: BoxFit.cover,
+                              ),
+                            ),
+                          );
+                  },
+                );
+              },
+            ),
           ),
         ],
       ),
     );
   }
 
-  addMessage() async {
-    if (messageEditingController.text.isNotEmpty &&
-        messageEditingController.text.trim().length > 0) {
-      int id = first == true
-          ? 0
-          : await db.getLastMessage(sender).then((val) {
-              return val.id;
-            });
+  Future addMessage(value) async {
+    int id = 0;
+    // int id = first == true
+    //     ? 0
+    //     : await db.getLastMessage(sender).then((val) {
+    //         return val.id;
+    //       });
+    if (value.length > 0) {
+      final extension = p.extension(value);
+      Message message = new Message(
+        message: "",
+        username: sender,
+        sender: Constants.myName,
+        time: DateTime.now().millisecondsSinceEpoch,
+        id: id + 1,
+        mediaType: extension,
+        mediaUrl: value,
+      );
+      print("the message ${message.toString()}");
+      await db.insertMessage(message);
+      Map<String, dynamic> chatMessageMap = {
+        "sendBy": Constants.myName,
+        "message": "",
+        'time': DateTime.now().millisecondsSinceEpoch,
+        "mediaType": extension,
+        "mediaUrl": imageUrl,
+      };
+      DatabaseMethods().addMessage(widget.chatRoomId, chatMessageMap);
+      setState(() {
+        imageUrl = null;
+        first = false;
+      });
+    } else if ((messageEditingController.text.isNotEmpty &&
+        messageEditingController.text.trim().length >= 1)) {
       Message message = new Message(
         message: messageEditingController.text,
         username: sender,
         sender: Constants.myName,
         time: DateTime.now().millisecondsSinceEpoch,
         id: id + 1,
+        mediaType: "none",
+        mediaUrl: imageUrl,
       );
       await db.insertMessage(message);
       Map<String, dynamic> chatMessageMap = {
         "sendBy": Constants.myName,
-        "message": messageEditingController.text,
+        "message": messageEditingController.text ?? "",
         'time': DateTime.now().millisecondsSinceEpoch,
+        "mediaType": "none",
+        "mediaUrl": "",
       };
-
       DatabaseMethods().addMessage(widget.chatRoomId, chatMessageMap);
       setState(() {
         messageEditingController.text = "";
         first = false;
       });
     }
+  }
+
+  Future deleteMedia(url) async {
+    await FirebaseStorage.instance
+        .ref()
+        .child(url)
+        .delete()
+        .then((_) => print('Successfully deleted $url storage item'));
   }
 
   @override
@@ -251,7 +362,7 @@ class _ChatState extends State<Chat> with TickerProviderStateMixin {
                                     color:
                                         Theme.of(context).colorScheme.primary),
                                 color: Theme.of(context).colorScheme.primary,
-                                onPressed: () => addMessage(),
+                                onPressed: () => addMessage(""),
                               ),
                               border: InputBorder.none,
                               hintText: "Type...",
@@ -271,6 +382,40 @@ class _ChatState extends State<Chat> with TickerProviderStateMixin {
                             minLines: 1,
                           ),
                         ),
+                        IconButton(
+                          icon: Icon(
+                            Icons.add,
+                            color: Theme.of(context).colorScheme.primary,
+                          ),
+                          onPressed: () async {
+                            showModalBottomSheet(
+                              context: context,
+                              builder: (context) {
+                                return Column(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: <Widget>[
+                                    ListTile(
+                                      leading: new Icon(Icons.photo),
+                                      title: new Text('Camera Photo'),
+                                      onTap: () async {
+                                        await pickFile(context, "cameraPhoto");
+                                        Navigator.pop(context);
+                                      },
+                                    ),
+                                    ListTile(
+                                      leading: new Icon(Icons.music_note),
+                                      title: new Text('Gallery Photo'),
+                                      onTap: () async {
+                                        await pickFile(context, "galleryPhoto");
+                                        Navigator.pop(context);
+                                      },
+                                    ),
+                                  ],
+                                );
+                              },
+                            );
+                          },
+                        ),
                       ],
                     ),
                     SizedBox(height: 2),
@@ -278,101 +423,24 @@ class _ChatState extends State<Chat> with TickerProviderStateMixin {
                 ),
               ),
             ),
+            Visibility(
+              visible: uploading,
+              child: Container(
+                height: MediaQuery.of(context).size.height,
+                width: MediaQuery.of(context).size.width,
+                color: Colors.white,
+                child: Center(
+                  child: CircularProgressIndicator(
+                    valueColor: AlwaysStoppedAnimation<Color>(
+                      Theme.of(context).colorScheme.primary,
+                    ),
+                  ),
+                ),
+              ),
+            )
           ],
         ),
       ),
-    );
-  }
-}
-
-class MessageTile extends StatefulWidget {
-  final String message;
-  final bool sendByMe;
-  final int time;
-  MessageTile({@required this.message, @required this.sendByMe, this.time});
-
-  @override
-  _MessageTileState createState() => _MessageTileState();
-}
-
-class _MessageTileState extends State<MessageTile> {
-  bool isemoji() {
-    final RegExp regexEmoji = RegExp(
-        r'(\u00a9|\u00ae|[\u2000-\u3300]|\ud83c[\ud000-\udfff]|\ud83d[\ud000-\udfff]|\ud83e[\ud000-\udfff])');
-    for (int i = 0; i < widget.message.length; i++) {
-      if (!regexEmoji.hasMatch(widget.message.substring(i, i + 1))) {
-        return false;
-      }
-    }
-    return true;
-  }
-
-  _launchURL(String url) async {
-    if (await canLaunch(url)) {
-      await launch(url);
-    } else {}
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      children: <Widget>[
-        Container(
-          padding: EdgeInsets.only(
-            top: 8,
-            bottom: 8,
-            left: widget.sendByMe ? 40 : 20,
-            right: widget.sendByMe ? 20 : 40,
-          ),
-          alignment:
-              widget.sendByMe ? Alignment.centerRight : Alignment.centerLeft,
-          child: Container(
-            margin: widget.sendByMe
-                ? EdgeInsets.only(left: 30)
-                : EdgeInsets.only(right: 30),
-            padding: EdgeInsets.only(top: 17, bottom: 17, left: 20, right: 20),
-            decoration: BoxDecoration(
-              border: Border.all(
-                  color: isemoji()
-                      ? Colors.transparent
-                      : Theme.of(context).colorScheme.primary),
-              color: Colors.transparent,
-              borderRadius: widget.sendByMe
-                  ? BorderRadius.only(
-                      topLeft: Radius.circular(23),
-                      topRight: Radius.circular(23),
-                      bottomLeft: Radius.circular(23),
-                    )
-                  : BorderRadius.only(
-                      topLeft: Radius.circular(23),
-                      topRight: Radius.circular(23),
-                      bottomRight: Radius.circular(23),
-                    ),
-            ),
-            child: GestureDetector(
-              onTap: () {
-                if (widget.message.contains('http') ||
-                    widget.message.contains("https"))
-                  _launchURL(widget.message);
-              },
-              child: Text(
-                widget.message,
-                textAlign: TextAlign.start,
-                style: GoogleFonts.workSans(
-                  color: widget.sendByMe
-                      ? Theme.of(context).primaryColorDark
-                      : Theme.of(context).colorScheme.primary,
-                  fontSize: 16,
-                  decoration: widget.message.contains('http')
-                      ? TextDecoration.underline
-                      : TextDecoration.none,
-                  fontWeight: FontWeight.w400,
-                ),
-              ),
-            ),
-          ),
-        ),
-      ],
     );
   }
 }
