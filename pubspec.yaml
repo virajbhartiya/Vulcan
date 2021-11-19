@@ -20,9 +20,11 @@ dependencies:
   url_launcher: ^5.5.0
 
 dev_dependencies:
+  cached_network_image: 
   flutter_test:
     sdk: flutter
   fluttertoast: ^7.1.1
+  image_picker: null
   sqflite: ^2.0.0+4
 
 flutter:

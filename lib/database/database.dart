@@ -12,11 +12,11 @@ class DatabaseSQL {
   }
 
   init(username) async {
-    await openDatabase(join(await getDatabasesPath(), 'chats.db'),
+    await openDatabase(join(await getDatabasesPath(), username + '.db'),
             onCreate: (db, version) async {
       return await db.execute("CREATE TABLE " +
           username +
-          "(id INTEGER, message TEXT, time INTEGER, sender TEXT, username TEXT)");
+          "(id INTEGER, message TEXT, time INTEGER, sender TEXT, username TEXT, mediaType TEXT, mediaUrl TEXT)");
     }, version: 1)
         .then((db) {
       database = db;
@@ -28,7 +28,7 @@ class DatabaseSQL {
     await db.insert(
       message.username,
       message.toMap(),
-      conflictAlgorithm: ConflictAlgorithm.ignore,
+      conflictAlgorithm: ConflictAlgorithm.replace,
     );
   }
 
@@ -41,6 +41,8 @@ class DatabaseSQL {
         message: maps[i]['message'],
         sender: maps[i]['sender'],
         time: maps[i]['time'],
+        mediaType: maps[i]['mediaType'],
+        mediaUrl: maps[i]['mediaUrl'],
         username: username,
       );
     });
@@ -64,6 +66,8 @@ class DatabaseSQL {
       message: maps[maps.length - 1]['message'],
       sender: maps[maps.length - 1]['sender'],
       username: maps[maps.length - 1]['username'],
+      mediaType: maps[maps.length - 1]['mediaType'],
+      mediaUrl: maps[maps.length - 1]['mediaUrl'],
     );
   }
 }

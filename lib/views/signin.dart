@@ -147,8 +147,8 @@ class _SignInState extends State<SignIn> {
                             },
                             minLines: 1,
                             controller: passwordEditingController,
-                            decoration: textFieldDecoration(
-                                context, 'Our Little Secret'),
+                            decoration:
+                                textFieldDecoration(context, 'Password'),
                             textCapitalization: TextCapitalization.none,
                             keyboardType: TextInputType.text,
                             style: GoogleFonts.workSans(
@@ -192,7 +192,7 @@ class _SignInState extends State<SignIn> {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Text("Don't have account? ",
+                        Text("Don't have an account? ",
                             style: GoogleFonts.workSans(
                                 color: Theme.of(context).colorScheme.primary)),
                         GestureDetector(
