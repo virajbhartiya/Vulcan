@@ -1,5 +1,3 @@
-// ignore_for_file: await_only_futures
-
 import 'dart:io';
 import 'package:chatapp/widget/messageTile.dart';
 import 'package:firebase_storage/firebase_storage.dart';
@@ -101,7 +99,7 @@ class _ChatState extends State<Chat> with TickerProviderStateMixin {
   }
 
   Future fetchMessages() async {
-    db = await new DatabaseSQL(sender);
+    db = new DatabaseSQL(sender);
     var msgList = await db.getMessages(sender);
     setState(() {
       messagesList = msgList;
@@ -126,6 +124,8 @@ class _ChatState extends State<Chat> with TickerProviderStateMixin {
               sender: snapshot.data.documents[index].data["sendBy"],
               time: snapshot.data.documents[index].data["time"],
               message: snapshot.data.documents[index].data["message"],
+              mediaType: snapshot.data.documents[index].data["mediaType"],
+              mediaUrl: snapshot.data.documents[index].data["mediaUrl"],
               id: id++);
 
           db.insertMessage(message).then((value) {
@@ -163,8 +163,12 @@ class _ChatState extends State<Chat> with TickerProviderStateMixin {
                       itemCount: snapshot.data.documents.length,
                       itemBuilder: (context, index) {
                         try {
-                          updateList(snapshot, index);
-                          fetchMessages();
+                          if (db != null) {
+                            updateList(snapshot, index);
+                            fetchMessages();
+                          } else {
+                            db = new DatabaseSQL(sender);
+                          }
                         } catch (e) {
                           print(e);
                         }
@@ -186,28 +190,30 @@ class _ChatState extends State<Chat> with TickerProviderStateMixin {
                   controller: _scrollController,
                   itemCount: messagesList.length ?? 0 - 1,
                   itemBuilder: (context, index) {
-                    return (messagesList[index].mediaType ?? "none") == "none"
-                        ? MessageTile(
-                            message: messagesList[index].message,
-                            sendByMe:
-                                Constants.myName == messagesList[index].sender)
-                        : Container(
-                            height: 201,
+                    if ((messagesList[index].mediaType ?? "none") == "none") {
+                      return MessageTile(
+                          message: messagesList[index].message,
+                          sendByMe:
+                              Constants.myName == messagesList[index].sender);
+                    } else {
+                      return Container(
+                        height: 201,
+                        width: 200,
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(10),
+                          color: Colors.grey[200],
+                        ),
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(10),
+                          child: CachedNetworkImage(
+                            height: 200,
                             width: 200,
-                            decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(10),
-                              color: Colors.grey[200],
-                            ),
-                            child: ClipRRect(
-                              borderRadius: BorderRadius.circular(10),
-                              child: CachedNetworkImage(
-                                height: 200,
-                                width: 200,
-                                imageUrl: messagesList[index].mediaUrl,
-                                fit: BoxFit.cover,
-                              ),
-                            ),
-                          );
+                            imageUrl: messagesList[index].mediaUrl,
+                            fit: BoxFit.cover,
+                          ),
+                        ),
+                      );
+                    }
                   },
                 );
               },
@@ -226,6 +232,9 @@ class _ChatState extends State<Chat> with TickerProviderStateMixin {
     //         return val.id;
     //       });
     if (value.length > 0) {
+      // print('##################################');
+      // print(value);
+      // print('##################################');
       final extension = p.extension(value);
       Message message = new Message(
         message: "",
@@ -236,13 +245,16 @@ class _ChatState extends State<Chat> with TickerProviderStateMixin {
         mediaType: extension,
         mediaUrl: value,
       );
-      print("the message ${message.toString()}");
+      print('##################################');
+      print(message.toString());
+      print('##################################');
+      // print("the message ${message.toString()}");
       await db.insertMessage(message);
       Map<String, dynamic> chatMessageMap = {
         "sendBy": Constants.myName,
         "message": "",
         'time': DateTime.now().millisecondsSinceEpoch,
-        "mediaType": extension,
+        "mediaType": "photo",
         "mediaUrl": imageUrl,
       };
       DatabaseMethods().addMessage(widget.chatRoomId, chatMessageMap);
@@ -259,7 +271,7 @@ class _ChatState extends State<Chat> with TickerProviderStateMixin {
         time: DateTime.now().millisecondsSinceEpoch,
         id: id + 1,
         mediaType: "none",
-        mediaUrl: imageUrl,
+        mediaUrl: "",
       );
       await db.insertMessage(message);
       Map<String, dynamic> chatMessageMap = {
