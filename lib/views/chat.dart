@@ -330,7 +330,8 @@ class _ChatState extends State<Chat> with TickerProviderStateMixin {
             Container(
               color: Theme.of(context).primaryColor,
               height: MediaQuery.of(context).size.height - 150,
-              child: chatMessages(),
+              child: SingleChildScrollView(
+                  scrollDirection: Axis.vertical, child: chatMessages()),
             ),
             Container(
               alignment: Alignment.bottomCenter,
