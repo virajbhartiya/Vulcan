@@ -20,10 +20,13 @@ dependencies:
   url_launcher: ^5.5.0
 
 dev_dependencies:
-  cached_network_image: 
+  cached_network_image: null
+  flutter_colorpicker: ^1.0.2
+  flutter_speed_dial: ^4.6.6
   flutter_test:
     sdk: flutter
   fluttertoast: ^7.1.1
+  font_awesome_flutter: ^9.2.0
   image_picker: null
   sqflite: ^2.0.0+4
 
