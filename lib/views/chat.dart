@@ -9,6 +9,7 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:feather_icons_flutter/feather_icons_flutter.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:chatapp/views/drawing screen/drawing_screen.dart';
 import '../helper/constants.dart';
 import '../helper/firebase_helper.dart';
 import 'package:cached_network_image/cached_network_image.dart';
@@ -79,6 +80,18 @@ class _ChatState extends State<Chat> with TickerProviderStateMixin {
     });
   }
 
+  void draw() {
+    Navigator.push(
+            context, MaterialPageRoute(builder: (context) => DrawingScreen()))
+        .then((value) {
+      setState(() {
+        uploading = true;
+        _imageFile = value;
+      });
+      uploadImageToFirebase(context);
+    });
+  }
+
   Future uploadImageToFirebase(BuildContext context) async {
     String fileName = _imageFile.path.split('/').last;
     StorageReference firebaseStorageRef =
@@ -107,15 +120,21 @@ class _ChatState extends State<Chat> with TickerProviderStateMixin {
   }
 
   Future updateList(snapshot, index) async {
+    int count = 0;
     try {
-      if (index < snapshot.data.documents.length) {
+      if (index < snapshot.data.documents.length && count == 0) {
         if (!(Constants.myName ==
-            snapshot
-                .data
-                .documents[index >= snapshot.data.documents.length
-                    ? index - snapshot.data.documents.length
-                    : index]
-                .data["sendBy"])) {
+                snapshot
+                    .data
+                    .documents[index >= snapshot.data.documents.length
+                        ? index - snapshot.data.documents.length
+                        : index]
+                    .data["sendBy"]) &&
+            count == 0) {
+          count++;
+          Message last = messagesList.last;
+          if (last.time == snapshot.data.documents[index].data["time"]) return;
+
           Message message = new Message(
               username: Constants.myName ==
                       snapshot.data.documents[index].data["sendBy"]
@@ -129,9 +148,6 @@ class _ChatState extends State<Chat> with TickerProviderStateMixin {
               id: id++);
 
           db.insertMessage(message).then((value) {
-            // if (snapshot.data.documents[index].data["mediaUrl"].length > 0) {
-            //   deletMedia(snapshot.data.documents[index].data["mediaUrl"]);
-            // }
             Firestore.instance
                 .collection("chatRoom")
                 .document(widget.chatRoomId)
@@ -180,45 +196,39 @@ class _ChatState extends State<Chat> with TickerProviderStateMixin {
           ),
           SingleChildScrollView(
             scrollDirection: Axis.vertical,
-            child: StreamBuilder(
-              stream: chats,
-              builder: (context, snapshot) {
-                return ListView.builder(
-                  reverse: false,
-                  shrinkWrap: true,
-                  scrollDirection: Axis.vertical,
-                  controller: _scrollController,
-                  itemCount: messagesList.length ?? 0 - 1,
-                  itemBuilder: (context, index) {
-                    if ((messagesList[index].mediaType ?? "none") == "none") {
-                      return MessageTile(
-                          message: messagesList[index].message,
-                          sendByMe:
-                              Constants.myName == messagesList[index].sender);
-                    } else {
-                      return Container(
-                        height: 201,
+            child: ListView.builder(
+              reverse: false,
+              shrinkWrap: true,
+              scrollDirection: Axis.vertical,
+              controller: _scrollController,
+              itemCount: messagesList.length ?? 0,
+              itemBuilder: (context, index) {
+                if ((messagesList[index].mediaType ?? "none") == "none") {
+                  return MessageTile(
+                      message: messagesList[index].message,
+                      sendByMe: Constants.myName == messagesList[index].sender);
+                } else {
+                  return Container(
+                    height: 201,
+                    width: 200,
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(10),
+                      color: Colors.grey[200],
+                    ),
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(10),
+                      child: CachedNetworkImage(
+                        height: 200,
                         width: 200,
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(10),
-                          color: Colors.grey[200],
-                        ),
-                        child: ClipRRect(
-                          borderRadius: BorderRadius.circular(10),
-                          child: CachedNetworkImage(
-                            height: 200,
-                            width: 200,
-                            imageUrl: messagesList[index].mediaUrl,
-                            fit: BoxFit.cover,
-                          ),
-                        ),
-                      );
-                    }
-                  },
-                );
+                        imageUrl: messagesList[index].mediaUrl,
+                        fit: BoxFit.cover,
+                      ),
+                    ),
+                  );
+                }
               },
             ),
-          ),
+          )
         ],
       ),
     );
@@ -226,15 +236,7 @@ class _ChatState extends State<Chat> with TickerProviderStateMixin {
 
   Future addMessage(value) async {
     int id = 0;
-    // int id = first == true
-    //     ? 0
-    //     : await db.getLastMessage(sender).then((val) {
-    //         return val.id;
-    //       });
     if (value.length > 0) {
-      // print('##################################');
-      // print(value);
-      // print('##################################');
       final extension = p.extension(value);
       Message message = new Message(
         message: "",
@@ -245,10 +247,6 @@ class _ChatState extends State<Chat> with TickerProviderStateMixin {
         mediaType: extension,
         mediaUrl: value,
       );
-      print('##################################');
-      print(message.toString());
-      print('##################################');
-      // print("the message ${message.toString()}");
       await db.insertMessage(message);
       Map<String, dynamic> chatMessageMap = {
         "sendBy": Constants.myName,
@@ -408,7 +406,7 @@ class _ChatState extends State<Chat> with TickerProviderStateMixin {
                                   mainAxisSize: MainAxisSize.min,
                                   children: <Widget>[
                                     ListTile(
-                                      leading: new Icon(Icons.photo),
+                                      leading: new Icon(Icons.camera),
                                       title: new Text('Camera Photo'),
                                       onTap: () async {
                                         await pickFile(context, "cameraPhoto");
@@ -416,11 +414,18 @@ class _ChatState extends State<Chat> with TickerProviderStateMixin {
                                       },
                                     ),
                                     ListTile(
-                                      leading: new Icon(Icons.music_note),
+                                      leading: new Icon(Icons.photo),
                                       title: new Text('Gallery Photo'),
                                       onTap: () async {
                                         await pickFile(context, "galleryPhoto");
                                         Navigator.pop(context);
+                                      },
+                                    ),
+                                    ListTile(
+                                      leading: new Icon(Icons.all_inclusive),
+                                      title: new Text('Draw'),
+                                      onTap: () async {
+                                        draw();
                                       },
                                     ),
                                   ],

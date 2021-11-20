@@ -28,7 +28,7 @@ class DatabaseSQL {
     await db.insert(
       message.username,
       message.toMap(),
-      conflictAlgorithm: ConflictAlgorithm.replace,
+      conflictAlgorithm: ConflictAlgorithm.ignore,
     );
   }
 
