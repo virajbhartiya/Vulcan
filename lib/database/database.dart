@@ -16,7 +16,7 @@ class DatabaseSQL {
             onCreate: (db, version) async {
       return await db.execute("CREATE TABLE " +
           username +
-          "(id INTEGER, message TEXT, time INTEGER, sender TEXT, username TEXT, mediaType TEXT, mediaUrl TEXT)");
+          "(message TEXT, time INTEGER, sender TEXT, username TEXT, mediaType TEXT, mediaUrl TEXT)");
     }, version: 1)
         .then((db) {
       database = db;
@@ -37,7 +37,6 @@ class DatabaseSQL {
     final List<Map<String, dynamic>> maps = await db.query(username);
     return List.generate(maps.length, (i) {
       return Message(
-        id: maps[i]['id'],
         message: maps[i]['message'],
         sender: maps[i]['sender'],
         time: maps[i]['time'],
@@ -61,7 +60,6 @@ class DatabaseSQL {
     final db = database;
     final List<Map<String, dynamic>> maps = await db.query(username);
     return Message(
-      id: maps[maps.length - 1]['id'],
       time: maps[maps.length - 1]['time'],
       message: maps[maps.length - 1]['message'],
       sender: maps[maps.length - 1]['sender'],

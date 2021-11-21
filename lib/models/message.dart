@@ -3,7 +3,6 @@ import 'dart:convert';
 class Message {
   String sender;
   String username;
-  int id;
   String message;
   int time;
   String mediaType;
@@ -11,7 +10,6 @@ class Message {
   Message({
     this.sender,
     this.username,
-    this.id,
     this.message,
     this.time,
     this.mediaType,
@@ -21,7 +19,6 @@ class Message {
   Message copyWith({
     String sender,
     String username,
-    int id,
     String message,
     int time,
     String mediaType,
@@ -30,7 +27,6 @@ class Message {
     return Message(
       sender: sender ?? this.sender,
       username: username ?? this.username,
-      id: id ?? this.id,
       message: message ?? this.message,
       time: time ?? this.time,
       mediaType: mediaType ?? this.mediaType,
@@ -42,7 +38,6 @@ class Message {
     return {
       'sender': sender,
       'username': username,
-      'id': id,
       'message': message,
       'time': time,
       'mediaType': mediaType,
@@ -54,7 +49,6 @@ class Message {
     return Message(
       sender: map['sender'],
       username: map['username'],
-      id: map['id'],
       message: map['message'],
       time: map['time'],
       mediaType: map['mediaType'],
@@ -69,7 +63,7 @@ class Message {
 
   @override
   String toString() {
-    return 'Message(sender: $sender, username: $username, id: $id, message: $message, time: $time, mediaType: $mediaType, mediaUrl: $mediaUrl)';
+    return 'Message(sender: $sender, username: $username, message: $message, time: $time, mediaType: $mediaType, mediaUrl: $mediaUrl)';
   }
 
   @override
@@ -79,7 +73,6 @@ class Message {
     return other is Message &&
         other.sender == sender &&
         other.username == username &&
-        other.id == id &&
         other.message == message &&
         other.time == time &&
         other.mediaType == mediaType &&
@@ -90,7 +83,6 @@ class Message {
   int get hashCode {
     return sender.hashCode ^
         username.hashCode ^
-        id.hashCode ^
         message.hashCode ^
         time.hashCode ^
         mediaType.hashCode ^

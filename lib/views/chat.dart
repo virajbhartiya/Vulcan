@@ -32,7 +32,6 @@ class _ChatState extends State<Chat> with TickerProviderStateMixin {
   TextEditingController messageEditingController = new TextEditingController();
   String sender = '';
   DatabaseSQL db;
-  int id = 0;
   List<Message> messagesList = [];
   File _imageFile;
   String imageUrl;
@@ -119,43 +118,30 @@ class _ChatState extends State<Chat> with TickerProviderStateMixin {
     });
   }
 
-  Future updateList(snapshot, index) async {
+  Future updateList(msg, docID) async {
     int count = 0;
     try {
-      if (index < snapshot.data.documents.length && count == 0) {
-        if (!(Constants.myName ==
-                snapshot
-                    .data
-                    .documents[index >= snapshot.data.documents.length
-                        ? index - snapshot.data.documents.length
-                        : index]
-                    .data["sendBy"]) &&
-            count == 0) {
-          count++;
-          Message last = messagesList.last;
-          if (last.time == snapshot.data.documents[index].data["time"]) return;
-
-          Message message = new Message(
-              username: Constants.myName ==
-                      snapshot.data.documents[index].data["sendBy"]
-                  ? sender
-                  : snapshot.data.documents[index].data["sendBy"],
-              sender: snapshot.data.documents[index].data["sendBy"],
-              time: snapshot.data.documents[index].data["time"],
-              message: snapshot.data.documents[index].data["message"],
-              mediaType: snapshot.data.documents[index].data["mediaType"],
-              mediaUrl: snapshot.data.documents[index].data["mediaUrl"],
-              id: id++);
-
-          db.insertMessage(message).then((value) {
-            Firestore.instance
-                .collection("chatRoom")
-                .document(widget.chatRoomId)
-                .collection("chats")
-                .document(snapshot.data.documents[index].documentID)
-                .delete();
-          });
+      if (!(Constants.myName == msg["sendBy"]) && count == 0) {
+        count++;
+        await Firestore.instance
+            .collection("chatRoom")
+            .document(widget.chatRoomId)
+            .collection("chats")
+            .document(docID)
+            .delete();
+        Message message = new Message(
+            username:
+                Constants.myName == msg["sendBy"] ? sender : msg["sendBy"],
+            sender: msg["sendBy"],
+            time: msg["time"],
+            message: msg["message"],
+            mediaType: msg["mediaType"],
+            mediaUrl: msg["mediaUrl"]);
+        if (!messagesList.contains(message)) {
+          messagesList.add(message);
+          db.insertMessage(message).then((value) async {});
         }
+        // await fetchMessages();
       }
     } catch (e) {
       print(e);
@@ -173,15 +159,15 @@ class _ChatState extends State<Chat> with TickerProviderStateMixin {
               fetchMessages();
               return snapshot.hasData
                   ? ListView.builder(
-                      reverse: false,
                       shrinkWrap: true,
                       controller: _scrollController,
                       itemCount: snapshot.data.documents.length,
                       itemBuilder: (context, index) {
                         try {
+                          fetchMessages();
                           if (db != null) {
-                            updateList(snapshot, index);
-                            fetchMessages();
+                            updateList(snapshot.data.documents[index].data,
+                                snapshot.data.documents[index].documentID);
                           } else {
                             db = new DatabaseSQL(sender);
                           }
@@ -203,6 +189,7 @@ class _ChatState extends State<Chat> with TickerProviderStateMixin {
               controller: _scrollController,
               itemCount: messagesList.length ?? 0,
               itemBuilder: (context, index) {
+                fetchMessages();
                 if ((messagesList[index].mediaType ?? "none") == "none") {
                   return MessageTile(
                       message: messagesList[index].message,
@@ -235,7 +222,6 @@ class _ChatState extends State<Chat> with TickerProviderStateMixin {
   }
 
   Future addMessage(value) async {
-    int id = 0;
     if (value.length > 0) {
       final extension = p.extension(value);
       Message message = new Message(
@@ -243,7 +229,6 @@ class _ChatState extends State<Chat> with TickerProviderStateMixin {
         username: sender,
         sender: Constants.myName,
         time: DateTime.now().millisecondsSinceEpoch,
-        id: id + 1,
         mediaType: extension,
         mediaUrl: value,
       );
@@ -262,19 +247,23 @@ class _ChatState extends State<Chat> with TickerProviderStateMixin {
       });
     } else if ((messageEditingController.text.isNotEmpty &&
         messageEditingController.text.trim().length >= 1)) {
+      String msg = messageEditingController.text;
+      setState(() {
+        msg = messageEditingController.text;
+        messageEditingController.text = "";
+      });
       Message message = new Message(
-        message: messageEditingController.text,
+        message: msg,
         username: sender,
         sender: Constants.myName,
         time: DateTime.now().millisecondsSinceEpoch,
-        id: id + 1,
         mediaType: "none",
         mediaUrl: "",
       );
       await db.insertMessage(message);
       Map<String, dynamic> chatMessageMap = {
         "sendBy": Constants.myName,
-        "message": messageEditingController.text ?? "",
+        "message": msg ?? "",
         'time': DateTime.now().millisecondsSinceEpoch,
         "mediaType": "none",
         "mediaUrl": "",
