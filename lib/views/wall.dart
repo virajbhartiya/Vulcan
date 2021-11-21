@@ -1,4 +1,5 @@
 import 'package:chatapp/helper/constants.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:feather_icons_flutter/feather_icons_flutter.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -12,9 +13,42 @@ class Wall extends StatefulWidget {
 }
 
 class _WallState extends State<Wall> {
-  List<String> comments = [];
   TextEditingController commentController = TextEditingController();
-  Future getComments() async {}
+  Stream<QuerySnapshot> comments;
+
+  @override
+  void initState() {
+    super.initState();
+    getComments().then((value) {
+      setState(() {
+        comments = value;
+      });
+    });
+  }
+
+  Future getComments() async {
+    return Firestore.instance
+        .collection("users")
+        .document(widget.title)
+        .collection("comments")
+        .orderBy("time", descending: true)
+        .snapshots();
+  }
+
+  Future addComment() async {
+    String value = commentController.text;
+    commentController.clear();
+    await Firestore.instance
+        .collection("users")
+        .document(widget.title)
+        .collection("comments")
+        .add({
+      "comment": value,
+      "time": DateTime.now().microsecondsSinceEpoch,
+      "user": Constants.myName,
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -101,7 +135,9 @@ class _WallState extends State<Wall> {
                         icon: Icon(FeatherIcons.chevronRight,
                             color: Theme.of(context).colorScheme.primary),
                         color: Theme.of(context).colorScheme.primary,
-                        onPressed: () => null),
+                        onPressed: () async {
+                          await addComment();
+                        }),
                     border: InputBorder.none,
                     hintText: "Search...",
                     hintStyle: TextStyle(
@@ -120,38 +156,81 @@ class _WallState extends State<Wall> {
             Container(
                 height: 200,
                 child: SingleChildScrollView(
-                  scrollDirection: Axis.vertical,
-                  child: Column(
-                    children: [
-                      for (var comment in comments)
-                        Container(
-                          height: 40,
-                          child: Column(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Padding(
-                                padding: const EdgeInsets.only(left: 12.0),
-                                child: Align(
-                                  alignment: Alignment.centerLeft,
-                                  child: Text(
-                                    comment,
-                                    style: GoogleFonts.workSans(
-                                      fontSize: 20,
-                                      color: Colors.black,
+                    scrollDirection: Axis.vertical,
+                    child: StreamBuilder(
+                      stream: comments,
+                      builder: (context, snapshot) {
+                        print(snapshot.data);
+                        return snapshot.hasData
+                            ? ListView.builder(
+                                shrinkWrap: true,
+                                itemCount: snapshot.data.documents.length,
+                                itemBuilder: (context, index) {
+                                  print(snapshot
+                                      .data.documents[index].data["comment"]);
+                                  return Container(
+                                    height: 40,
+                                    child: Column(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        Padding(
+                                          padding:
+                                              const EdgeInsets.only(left: 12.0),
+                                          child: Align(
+                                            alignment: Alignment.centerLeft,
+                                            child: Text(
+                                              snapshot.data.documents[index]
+                                                  .data["comment"],
+                                              style: GoogleFonts.workSans(
+                                                fontSize: 20,
+                                                color: Colors.black,
+                                              ),
+                                            ),
+                                          ),
+                                        ),
+                                        Divider(
+                                          endIndent: MediaQuery.of(context)
+                                                  .size
+                                                  .width *
+                                              0.2,
+                                        )
+                                      ],
                                     ),
-                                  ),
-                                ),
-                              ),
-                              Divider(
-                                endIndent:
-                                    MediaQuery.of(context).size.width * 0.2,
-                              )
-                            ],
-                          ),
-                        )
-                    ],
-                  ),
-                )),
+                                  );
+                                })
+                            : Container();
+                      },
+                    )
+                    // Column(
+                    // children: [
+                    // Container(
+                    //   height: 40,
+                    //   child: Column(
+                    //     mainAxisSize: MainAxisSize.min,
+                    //     children: [
+                    //       Padding(
+                    //         padding: const EdgeInsets.only(left: 12.0),
+                    //         child: Align(
+                    //           alignment: Alignment.centerLeft,
+                    //           child: Text(
+                    //             comment,
+                    //             style: GoogleFonts.workSans(
+                    //               fontSize: 20,
+                    //               color: Colors.black,
+                    //             ),
+                    //           ),
+                    //         ),
+                    //       ),
+                    //       Divider(
+                    //         endIndent:
+                    //             MediaQuery.of(context).size.width * 0.2,
+                    //       )
+                    //     ],
+                    //   ),
+                    // )
+                    //   ],
+                    // ),
+                    )),
           ],
         ),
       ),
