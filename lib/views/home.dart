@@ -1,4 +1,5 @@
 import 'package:chatapp/views/settings.dart';
+import 'package:chatapp/views/wall.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -105,6 +106,15 @@ class _HomeState extends State<Home> {
                 child: Image.asset('assets/icons/gear.png', height: 30),
               ),
               SizedBox(width: 15),
+              IconButton(
+                  onPressed: () => Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (context) => Wall(
+                            title: Constants.myName,
+                          ),
+                        ),
+                      ),
+                  icon: Icon(Icons.person_outline_rounded, color: Colors.black))
             ],
           )
         ],
