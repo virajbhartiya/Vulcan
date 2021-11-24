@@ -1,14 +1,13 @@
-import 'package:chatapp/helper/googlesheet.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:google_fonts/google_fonts.dart';
-import '../funcitons.dart';
-import '../helper/sharedPrefFuncitons.dart';
-import '../services/auth.dart';
-import 'home.dart';
-import '../widget/widget.dart';
+import '../../funcitons.dart';
+import '../../helper/sharedPrefFuncitons.dart';
+import '../../services/auth.dart';
+import '../home.dart';
+import '../../widget/widget.dart';
 
 class SignIn extends StatefulWidget {
   final Function toggleView;
@@ -40,13 +39,6 @@ class _SignInState extends State<SignIn> {
     ));
   }
 
-  googleSheets(String email) async {
-    FormConstructor formConstructor =
-        FormConstructor(toDo: "signIn", email: email);
-    FormController formController = FormController("signIn");
-    formController.submit(formConstructor);
-  }
-
   signIn() async {
     if (formKey.currentState.validate()) {
       setState(() {
@@ -64,7 +56,6 @@ class _SignInState extends State<SignIn> {
           snapshot.data.forEach((key, value) {
             if (key == "password") {
               if (value == hash(passwordEditingController.text)) {
-                googleSheets(usernameEditingController.text);
                 SharedPrefFunctions.saveUserLoggedInSharedPreference(true);
                 SharedPrefFunctions.saveUserNameSharedPreference(
                     usernameEditingController.text);

@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:chatapp/views/wall.dart';
 import 'package:chatapp/widget/messageTile.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:image_picker/image_picker.dart';
@@ -73,7 +74,6 @@ class _ChatState extends State<Chat> with TickerProviderStateMixin {
     setState(() {
       uploading = true;
       _imageFile = File(pickedFile.path);
-      print(_imageFile);
 
       uploadImageToFirebase(context);
     });
@@ -105,8 +105,6 @@ class _ChatState extends State<Chat> with TickerProviderStateMixin {
       setState(() {
         uploading = false;
       });
-      print("Done: $value");
-      print(messagesList);
     });
   }
 
@@ -205,11 +203,16 @@ class _ChatState extends State<Chat> with TickerProviderStateMixin {
                     child: ClipRRect(
                       borderRadius: BorderRadius.circular(10),
                       child: CachedNetworkImage(
-                        height: 200,
-                        width: 200,
-                        imageUrl: messagesList[index].mediaUrl,
-                        fit: BoxFit.cover,
-                      ),
+                          height: 200,
+                          width: 200,
+                          imageUrl: messagesList[index].mediaUrl,
+                          fit: BoxFit.cover,
+                          progressIndicatorBuilder:
+                              (context, url, downloadProgress) {
+                            return Center(
+                                child: CircularProgressIndicator(
+                                    value: downloadProgress.progress));
+                          }),
                     ),
                   );
                 }
@@ -288,14 +291,36 @@ class _ChatState extends State<Chat> with TickerProviderStateMixin {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(
-          Constants.myName ==
-                  widget.chatRoomId.substring(0, widget.chatRoomId.indexOf('_'))
-              ? widget.chatRoomId.substring(widget.chatRoomId.indexOf('_') + 1)
-              : widget.chatRoomId.substring(0, widget.chatRoomId.indexOf('_')),
-          style: GoogleFonts.workSans(
-            fontSize: 22,
-            color: Theme.of(context).colorScheme.primary,
+        title: GestureDetector(
+          onTap: () {
+            Navigator.of(context).push(
+              MaterialPageRoute(
+                builder: (context) => Wall(
+                  title: Constants.myName ==
+                          widget.chatRoomId
+                              .substring(0, widget.chatRoomId.indexOf('_'))
+                      ? widget.chatRoomId
+                          .substring(widget.chatRoomId.indexOf('_') + 1)
+                      : widget.chatRoomId.substring(
+                          0,
+                          widget.chatRoomId.indexOf('_'),
+                        ),
+                ),
+              ),
+            );
+          },
+          child: Text(
+            Constants.myName ==
+                    widget.chatRoomId
+                        .substring(0, widget.chatRoomId.indexOf('_'))
+                ? widget.chatRoomId
+                    .substring(widget.chatRoomId.indexOf('_') + 1)
+                : widget.chatRoomId
+                    .substring(0, widget.chatRoomId.indexOf('_')),
+            style: GoogleFonts.workSans(
+              fontSize: 22,
+              color: Theme.of(context).colorScheme.primary,
+            ),
           ),
         ),
         backgroundColor: Colors.transparent,
