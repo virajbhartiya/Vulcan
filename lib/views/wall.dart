@@ -230,7 +230,6 @@ class _WallState extends State<Wall> {
                               itemCount: snapshot.data.documents.length,
                               itemBuilder: (context, index) {
                                 bool liked = false;
-                                int ind = 0;
                                 if (snapshot.data.documents[index]
                                         .data["likedBy"] !=
                                     null) {
@@ -242,10 +241,8 @@ class _WallState extends State<Wall> {
                                     } else {
                                       liked = false;
                                     }
-                                    ind++;
                                   }
                                 }
-                                print(liked);
                                 return Container(
                                   height: 55,
                                   child: Column(
