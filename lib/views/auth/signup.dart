@@ -6,7 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../helper/sharedPrefFuncitons.dart';
-import '../../services/auth.dart';
+// import '../../services/auth.dart';
 import '../../helper/firebase_helper.dart';
 import '../../widget/widget.dart';
 import 'dart:convert';
@@ -27,7 +27,7 @@ class _SignUpState extends State<SignUp> {
   TextEditingController passwordEditingController = new TextEditingController();
   TextEditingController usernameEditingController = new TextEditingController();
 
-  AuthService authService = new AuthService();
+  // AuthService authService = new AuthService();
   DatabaseMethods databaseMethods = new DatabaseMethods();
 
   final formKey = GlobalKey<FormState>();

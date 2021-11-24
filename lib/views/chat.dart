@@ -11,7 +11,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:feather_icons_flutter/feather_icons_flutter.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:chatapp/views/drawing screen/drawing_screen.dart';
-import '../helper/constants.dart';
+import '../consts.dart';
 import '../helper/firebase_helper.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:path/path.dart' as p;

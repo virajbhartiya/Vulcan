@@ -5,7 +5,9 @@ import 'package:google_fonts/google_fonts.dart';
 
 class Constants {
   static String appName = "Vulcan";
-
+  static String myName = "";
+  static String personName = "";
+  static String uid = "";
   //Colors for theme
   static Color lightPrimary = Colors.white;
   static Color darkPrimary = Colors.black;
