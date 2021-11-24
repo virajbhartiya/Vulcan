@@ -5,7 +5,7 @@ import 'package:fluttertoast/fluttertoast.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../funcitons.dart';
 import '../../helper/sharedPrefFuncitons.dart';
-import '../../services/auth.dart';
+// import '../../services/auth.dart';
 import '../home.dart';
 import '../../widget/widget.dart';
 
@@ -23,7 +23,7 @@ class _SignInState extends State<SignIn> {
   final formKey = GlobalKey<FormState>();
   TextEditingController usernameEditingController = new TextEditingController();
   TextEditingController passwordEditingController = new TextEditingController();
-  AuthService authService = new AuthService();
+  // AuthService authService = new AuthService();
 
   bool isLoading = false;
   @override
