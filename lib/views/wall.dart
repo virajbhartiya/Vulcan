@@ -1,9 +1,10 @@
-import 'package:chatapp/helper/constants.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:feather_icons_flutter/feather_icons_flutter.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+
+import '../consts.dart';
 
 class Wall extends StatefulWidget {
   final String title;
