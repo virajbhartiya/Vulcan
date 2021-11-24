@@ -1,14 +1,14 @@
 import 'dart:math';
-import '../funcitons.dart';
-import 'package:chatapp/helper/googlesheet.dart';
+import 'package:chatapp/views/auth/chooseProPic.dart';
+
+import '../../funcitons.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import '../helper/sharedPrefFuncitons.dart';
-import '../services/auth.dart';
-import '../helper/firebase_helper.dart';
-import 'home.dart';
-import '../widget/widget.dart';
+import '../../helper/sharedPrefFuncitons.dart';
+import '../../services/auth.dart';
+import '../../helper/firebase_helper.dart';
+import '../../widget/widget.dart';
 import 'dart:convert';
 import 'package:fluttertoast/fluttertoast.dart';
 
@@ -69,6 +69,7 @@ class _SignUpState extends State<SignUp> {
           "username": usernameEditingController.text,
           "timestamp": DateTime.now().millisecondsSinceEpoch,
           "uid": uid,
+          "profilePic": "",
         });
         SharedPrefFunctions.saveUserLoggedInSharedPreference(true);
         SharedPrefFunctions.saveUserNameSharedPreference(
@@ -79,7 +80,7 @@ class _SignUpState extends State<SignUp> {
         SharedPrefFunctions.saveUserPassSharedPreference(
             passwordEditingController.text);
         Navigator.pushReplacement(
-            context, MaterialPageRoute(builder: (context) => Home()));
+            context, MaterialPageRoute(builder: (context) => ChooseProPic()));
       } else {
         setState(() {
           isLoading = false;
@@ -96,15 +97,6 @@ class _SignUpState extends State<SignUp> {
         print("Users exists");
       }
     }
-  }
-
-  googleSheets(String name, String email) async {
-    FormConstructor formConstructor =
-        FormConstructor(name: name, toDo: "signUp", email: email);
-
-    FormController formController = FormController("signUp");
-
-    formController.submit(formConstructor);
   }
 
   @override

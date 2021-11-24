@@ -3,6 +3,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:feather_icons_flutter/feather_icons_flutter.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 
 class Wall extends StatefulWidget {
   final String title;
@@ -15,6 +16,7 @@ class Wall extends StatefulWidget {
 class _WallState extends State<Wall> {
   TextEditingController commentController = TextEditingController();
   Stream<QuerySnapshot> comments;
+  String proPic;
 
   @override
   void initState() {
@@ -24,9 +26,15 @@ class _WallState extends State<Wall> {
         comments = value;
       });
     });
+    getProPic().then((value) {
+      setState(() {
+        proPic = value.data["profilePic"];
+      });
+    });
   }
 
   Future getComments() async {
+    await getProPic();
     return Firestore.instance
         .collection("users")
         .document(widget.title)
@@ -35,17 +43,58 @@ class _WallState extends State<Wall> {
         .snapshots();
   }
 
-  Future addComment() async {
-    String value = commentController.text;
-    commentController.clear();
+  Future deleteComment(String id) async {
     await Firestore.instance
         .collection("users")
         .document(widget.title)
         .collection("comments")
-        .add({
+        .document(id)
+        .delete();
+  }
+
+  Future getProPic() async {
+    return Firestore.instance.collection("users").document(widget.title).get();
+  }
+
+  Future updateLikes(id, likedBy) async {
+    await Firestore.instance
+        .collection("users")
+        .document(widget.title)
+        .collection("comments")
+        .document(id)
+        .updateData({
+      "likes": FieldValue.increment(1),
+      "likedBy": FieldValue.arrayUnion(likedBy)
+    });
+  }
+
+  Future decreaseLikes(id) async {
+    await Firestore.instance
+        .collection("users")
+        .document(widget.title)
+        .collection("comments")
+        .document(id)
+        .updateData({
+      "likes": FieldValue.increment(-1),
+      "likedBy": FieldValue.arrayRemove([Constants.myName])
+    });
+  }
+
+  Future addComment() async {
+    String value = commentController.text;
+    commentController.clear();
+    String time = DateTime.now().millisecondsSinceEpoch.toString();
+    await Firestore.instance
+        .collection("users")
+        .document(widget.title)
+        .collection("comments")
+        .document()
+        .setData({
       "comment": value,
-      "time": DateTime.now().microsecondsSinceEpoch,
+      "time": time,
       "user": Constants.myName,
+      "likes": 0,
+      "likedBy": FieldValue.arrayUnion([])
     });
   }
 
@@ -54,7 +103,7 @@ class _WallState extends State<Wall> {
     return Scaffold(
       appBar: AppBar(
         title: Text(
-          widget.title + '\s Wall.',
+          widget.title + '\'\s Wall.',
           style: GoogleFonts.workSans(
             fontSize: 30,
             color: Theme.of(context).colorScheme.primary,
@@ -76,9 +125,25 @@ class _WallState extends State<Wall> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            CircleAvatar(
-              radius: 60,
-              backgroundImage: AssetImage('assets/images/profile.png'),
+            ClipRRect(
+              borderRadius: BorderRadius.circular(60),
+              child: Container(
+                  height: 70,
+                  width: 70,
+                  decoration: BoxDecoration(
+                    color: Colors.blue,
+                    borderRadius: BorderRadius.circular(60),
+                  ),
+                  child: CachedNetworkImage(
+                    height: 70,
+                    width: 70,
+                    imageUrl: proPic,
+                    fit: BoxFit.fill,
+                    progressIndicatorBuilder:
+                        (context, url, downloadProgress) =>
+                            CircularProgressIndicator(
+                                value: downloadProgress.progress),
+                  )),
             ),
             SizedBox(
               height: 20,
@@ -139,7 +204,7 @@ class _WallState extends State<Wall> {
                           await addComment();
                         }),
                     border: InputBorder.none,
-                    hintText: "Search...",
+                    hintText: "Add comment",
                     hintStyle: TextStyle(
                       color: Theme.of(context).colorScheme.primary,
                     ),
@@ -147,90 +212,133 @@ class _WallState extends State<Wall> {
                       left: 18,
                       right: 20,
                       top: 14,
-                      bottom: 14,
                     ),
                   ),
                 ),
               ),
             ),
             Container(
-                height: 200,
-                child: SingleChildScrollView(
-                    scrollDirection: Axis.vertical,
-                    child: StreamBuilder(
-                      stream: comments,
-                      builder: (context, snapshot) {
-                        print(snapshot.data);
-                        return snapshot.hasData
-                            ? ListView.builder(
-                                shrinkWrap: true,
-                                itemCount: snapshot.data.documents.length,
-                                itemBuilder: (context, index) {
-                                  print(snapshot
-                                      .data.documents[index].data["comment"]);
-                                  return Container(
-                                    height: 40,
-                                    child: Column(
-                                      mainAxisSize: MainAxisSize.min,
-                                      children: [
-                                        Padding(
-                                          padding:
-                                              const EdgeInsets.only(left: 12.0),
-                                          child: Align(
-                                            alignment: Alignment.centerLeft,
-                                            child: Text(
-                                              snapshot.data.documents[index]
-                                                  .data["comment"],
-                                              style: GoogleFonts.workSans(
-                                                fontSize: 20,
-                                                color: Colors.black,
+              height: 250,
+              child: SingleChildScrollView(
+                  scrollDirection: Axis.vertical,
+                  child: StreamBuilder(
+                    stream: comments,
+                    builder: (context, snapshot) {
+                      return snapshot.hasData
+                          ? ListView.builder(
+                              shrinkWrap: true,
+                              itemCount: snapshot.data.documents.length,
+                              itemBuilder: (context, index) {
+                                bool liked = false;
+                                int ind = 0;
+                                if (snapshot.data.documents[index]
+                                        .data["likedBy"] !=
+                                    null) {
+                                  for (var val in snapshot
+                                      .data.documents[index].data["likedBy"]) {
+                                    if (val == Constants.myName) {
+                                      liked = true;
+                                      break;
+                                    } else {
+                                      liked = false;
+                                    }
+                                    ind++;
+                                  }
+                                }
+                                print(liked);
+                                return Container(
+                                  height: 55,
+                                  child: Column(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      Row(
+                                        children: [
+                                          Padding(
+                                            padding: const EdgeInsets.only(
+                                                left: 12.0),
+                                            child: Align(
+                                              alignment: Alignment.centerLeft,
+                                              child: Text(
+                                                snapshot.data.documents[index]
+                                                    .data["comment"],
+                                                style: GoogleFonts.workSans(
+                                                  fontSize: 20,
+                                                  color: Colors.black,
+                                                ),
                                               ),
                                             ),
                                           ),
-                                        ),
-                                        Divider(
-                                          endIndent: MediaQuery.of(context)
-                                                  .size
-                                                  .width *
-                                              0.2,
-                                        )
-                                      ],
-                                    ),
-                                  );
-                                })
-                            : Container();
-                      },
-                    )
-                    // Column(
-                    // children: [
-                    // Container(
-                    //   height: 40,
-                    //   child: Column(
-                    //     mainAxisSize: MainAxisSize.min,
-                    //     children: [
-                    //       Padding(
-                    //         padding: const EdgeInsets.only(left: 12.0),
-                    //         child: Align(
-                    //           alignment: Alignment.centerLeft,
-                    //           child: Text(
-                    //             comment,
-                    //             style: GoogleFonts.workSans(
-                    //               fontSize: 20,
-                    //               color: Colors.black,
-                    //             ),
-                    //           ),
-                    //         ),
-                    //       ),
-                    //       Divider(
-                    //         endIndent:
-                    //             MediaQuery.of(context).size.width * 0.2,
-                    //       )
-                    //     ],
-                    //   ),
-                    // )
-                    //   ],
-                    // ),
-                    )),
+                                          Spacer(),
+                                          Text(
+                                            snapshot.data.documents[index]
+                                                .data["likes"]
+                                                .toString(),
+                                            style: GoogleFonts.workSans(
+                                              fontSize: 20,
+                                              color: Colors.black,
+                                            ),
+                                          ),
+                                          IconButton(
+                                            onPressed: () {
+                                              if (!liked) {
+                                                List<dynamic> likedBy = snapshot
+                                                    .data
+                                                    .documents[index]
+                                                    .data["likedBy"]
+                                                    .toList();
+                                                likedBy.add(Constants.myName);
+                                                updateLikes(
+                                                    snapshot
+                                                        .data
+                                                        .documents[index]
+                                                        .documentID,
+                                                    likedBy);
+                                              } else {
+                                                decreaseLikes(snapshot
+                                                    .data
+                                                    .documents[index]
+                                                    .documentID);
+                                              }
+                                              setState(() {
+                                                liked = !liked;
+                                              });
+                                            },
+                                            icon: Icon(
+                                              liked
+                                                  ? Icons.thumb_up
+                                                  : Icons.thumb_up_alt_outlined,
+                                              color: Colors.black,
+                                            ),
+                                          ),
+                                          Constants.myName == widget.title
+                                              ? IconButton(
+                                                  onPressed: () =>
+                                                      deleteComment(snapshot
+                                                          .data
+                                                          .documents[index]
+                                                          .documentID),
+                                                  icon: Icon(
+                                                    FeatherIcons.trash,
+                                                    color: Colors.red,
+                                                  ),
+                                                )
+                                              : Container(),
+                                        ],
+                                      ),
+                                      Divider(
+                                        endIndent:
+                                            MediaQuery.of(context).size.width *
+                                                0.2,
+                                      ),
+                                    ],
+                                  ),
+                                );
+                              },
+                            )
+                          : Container();
+                    },
+                  )),
+            ),
           ],
         ),
       ),

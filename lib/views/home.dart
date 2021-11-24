@@ -86,6 +86,7 @@ class _HomeState extends State<Home> {
             color: Theme.of(context).colorScheme.primary,
           ),
         ),
+        leading: null,
         actions: [
           Row(
             children: <Widget>[
