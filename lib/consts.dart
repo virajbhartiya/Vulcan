@@ -8,6 +8,7 @@ class Constants {
   static String myName = "";
   static String personName = "";
   static String uid = "";
+  static String deviceFingerprint = "";
   //Colors for theme
   static Color lightPrimary = Colors.white;
   static Color darkPrimary = Colors.black;

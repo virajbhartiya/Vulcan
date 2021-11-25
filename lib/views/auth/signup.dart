@@ -1,6 +1,7 @@
+import 'dart:io';
 import 'dart:math';
-import 'package:chatapp/views/auth/chooseProPic.dart';
-
+import 'package:device_info/device_info.dart';
+import 'package:flutter/services.dart';
 import '../../funcitons.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -28,14 +29,47 @@ class _SignUpState extends State<SignUp> {
   TextEditingController emailEditingController = new TextEditingController();
   TextEditingController passwordEditingController = new TextEditingController();
   TextEditingController usernameEditingController = new TextEditingController();
-
+  String deviceFingerprint;
   // AuthService authService = new AuthService();
   DatabaseMethods databaseMethods = new DatabaseMethods();
-
   final formKey = GlobalKey<FormState>();
   bool isLoading = false;
-
   Codec<String, String> stringToBase64 = utf8.fuse(base64);
+
+  @override
+  void initState() {
+    super.initState();
+    getDeviceDetails().then((_) {
+      setState(() {});
+    });
+  }
+
+  Future<List<String>> getDeviceDetails() async {
+    String deviceName;
+    String deviceVersion;
+    final DeviceInfoPlugin deviceInfoPlugin = new DeviceInfoPlugin();
+    try {
+      if (Platform.isAndroid) {
+        var build = await deviceInfoPlugin.androidInfo;
+        setState(() {
+          deviceName = build.model;
+          deviceVersion = build.version.toString();
+          deviceFingerprint = build.androidId; //UUID for Android
+        });
+      } else if (Platform.isIOS) {
+        var data = await deviceInfoPlugin.iosInfo;
+        setState(() {
+          deviceName = data.name;
+          deviceVersion = data.systemVersion;
+          deviceFingerprint = data.identifierForVendor; //UUID for iOS
+        });
+      }
+    } on PlatformException {
+      print('Failed to get platform version');
+    }
+
+    return [deviceName, deviceVersion, deviceFingerprint];
+  }
 
   Future<bool> usernameExists(String name) async {
     final QuerySnapshot result = await Firestore.instance
@@ -72,7 +106,10 @@ class _SignUpState extends State<SignUp> {
           "timestamp": DateTime.now().millisecondsSinceEpoch,
           "uid": uid,
           "profilePic": "",
+          "deviceFingerprint": deviceFingerprint,
         });
+        SharedPrefFunctions.saveDeviceFingerprintSharedPreference(
+            deviceFingerprint);
         SharedPrefFunctions.saveUserLoggedInSharedPreference(true);
         SharedPrefFunctions.saveUserNameSharedPreference(
             usernameEditingController.text);

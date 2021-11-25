@@ -21,6 +21,8 @@ dependencies:
 
 dev_dependencies:
   cached_network_image: null
+  device_info: ^2.0.3
+  encrypt: ^5.0.1
   flutter_colorpicker: ^1.0.2
   flutter_speed_dial: ^4.6.6
   flutter_test:

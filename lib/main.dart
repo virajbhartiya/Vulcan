@@ -21,22 +21,13 @@ class _MyAppState extends State<MyApp> {
   @override
   void initState() {
     getLoggedInState();
-    getLockScreenState();
     super.initState();
   }
 
-  getLoggedInState() async {
+  Future getLoggedInState() async {
     await SharedPrefFunctions.getUserLoggedInSharedPreference().then((value) {
       setState(() {
         userIsLoggedIn = value;
-      });
-    });
-  }
-
-  getLockScreenState() async {
-    await SharedPrefFunctions.getPinEnabledSharedPreference().then((value) {
-      setState(() {
-        lockScreenEnabled = value ?? false;
       });
     });
   }
