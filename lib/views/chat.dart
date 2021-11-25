@@ -15,6 +15,7 @@ import '../consts.dart';
 import '../helper/firebase_helper.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:path/path.dart' as p;
+import 'package:encrypt/encrypt.dart' as encrypt;
 
 class Chat extends StatefulWidget {
   final String chatRoomId;
@@ -38,6 +39,7 @@ class _ChatState extends State<Chat> with TickerProviderStateMixin {
   String imageUrl;
   bool uploading = false;
   final picker = ImagePicker();
+  String decryptKey = "";
 
   @override
   void initState() {
@@ -57,7 +59,39 @@ class _ChatState extends State<Chat> with TickerProviderStateMixin {
         chats = val;
       });
     });
+    getDecryptKey().then((_) {
+      setState(() {});
+    });
     super.initState();
+  }
+
+  Future getDecryptKey() async {
+    await Firestore.instance
+        .collection('users')
+        .document(sender)
+        .get()
+        .then((value) {
+      setState(() {
+        decryptKey = value.data['deviceFingerprint'];
+      });
+    });
+  }
+
+  String encryptMessage(value) {
+    final key = encrypt.Key.fromUtf8(Constants.deviceFingerprint);
+    final iv = encrypt.IV.fromLength(16);
+    final encrypter = encrypt.Encrypter(encrypt.AES(key));
+    final encrypted = encrypter
+        .encrypt(value == null ? messageEditingController.text : value, iv: iv);
+    return encrypted.base64;
+  }
+
+  String decryptMessage(value) {
+    final key = encrypt.Key.fromUtf8(decryptKey);
+    final iv = encrypt.IV.fromLength(16);
+    final encrypter = encrypt.Encrypter(encrypt.AES(key));
+    final decrypted = encrypter.decrypt64(value, iv: iv);
+    return decrypted;
   }
 
   Future pickFile(context, type) async {
@@ -190,7 +224,7 @@ class _ChatState extends State<Chat> with TickerProviderStateMixin {
                 fetchMessages();
                 if ((messagesList[index].mediaType ?? "none") == "none") {
                   return MessageTile(
-                      message: messagesList[index].message,
+                      message: decryptMessage(messagesList[index].message),
                       sendByMe: Constants.myName == messagesList[index].sender);
                 } else {
                   return Container(
@@ -205,7 +239,8 @@ class _ChatState extends State<Chat> with TickerProviderStateMixin {
                       child: CachedNetworkImage(
                           height: 200,
                           width: 200,
-                          imageUrl: messagesList[index].mediaUrl,
+                          imageUrl:
+                              decryptMessage(messagesList[index].mediaUrl),
                           fit: BoxFit.cover,
                           progressIndicatorBuilder:
                               (context, url, downloadProgress) {
@@ -233,7 +268,7 @@ class _ChatState extends State<Chat> with TickerProviderStateMixin {
         sender: Constants.myName,
         time: DateTime.now().millisecondsSinceEpoch,
         mediaType: extension,
-        mediaUrl: value,
+        mediaUrl: encryptMessage(value),
       );
       await db.insertMessage(message);
       Map<String, dynamic> chatMessageMap = {
@@ -241,7 +276,7 @@ class _ChatState extends State<Chat> with TickerProviderStateMixin {
         "message": "",
         'time': DateTime.now().millisecondsSinceEpoch,
         "mediaType": "photo",
-        "mediaUrl": imageUrl,
+        "mediaUrl": encryptMessage(imageUrl),
       };
       DatabaseMethods().addMessage(widget.chatRoomId, chatMessageMap);
       setState(() {
@@ -250,9 +285,10 @@ class _ChatState extends State<Chat> with TickerProviderStateMixin {
       });
     } else if ((messageEditingController.text.isNotEmpty &&
         messageEditingController.text.trim().length >= 1)) {
-      String msg = messageEditingController.text;
+      String msg = encryptMessage(null);
+
       setState(() {
-        msg = messageEditingController.text;
+        msg = encryptMessage(null);
         messageEditingController.text = "";
       });
       Message message = new Message(

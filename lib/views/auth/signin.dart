@@ -53,12 +53,21 @@ class _SignInState extends State<SignIn> {
         if (snapshot.data == null) {
           // Do something with the data
         } else {
-          snapshot.data.forEach((key, value) {
+          snapshot.data.forEach((key, value) async {
             if (key == "password") {
               if (value == hash(passwordEditingController.text)) {
+                String deviceFingerprint = await Firestore.instance
+                    .collection("users")
+                    .document(usernameEditingController.text)
+                    .get()
+                    .then((DocumentSnapshot snapshot) {
+                  return snapshot.data["deviceFingerprint"];
+                });
                 SharedPrefFunctions.saveUserLoggedInSharedPreference(true);
                 SharedPrefFunctions.saveUserNameSharedPreference(
                     usernameEditingController.text);
+                SharedPrefFunctions.saveDeviceFingerprintSharedPreference(
+                    deviceFingerprint);
                 Navigator.pushReplacement(
                     context, MaterialPageRoute(builder: (context) => Home()));
               } else {
