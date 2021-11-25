@@ -12,6 +12,8 @@ import '../../widget/widget.dart';
 import 'dart:convert';
 import 'package:fluttertoast/fluttertoast.dart';
 
+import '../home.dart';
+
 class SignUp extends StatefulWidget {
   final Function toggleView;
   SignUp(this.toggleView);
@@ -80,7 +82,7 @@ class _SignUpState extends State<SignUp> {
         SharedPrefFunctions.saveUserPassSharedPreference(
             passwordEditingController.text);
         Navigator.pushReplacement(
-            context, MaterialPageRoute(builder: (context) => ChooseProPic()));
+            context, MaterialPageRoute(builder: (context) => Home()));
       } else {
         setState(() {
           isLoading = false;
@@ -93,8 +95,6 @@ class _SignUpState extends State<SignUp> {
             backgroundColor: Colors.red,
             textColor: Colors.white,
             fontSize: 16.0);
-
-        print("Users exists");
       }
     }
   }
@@ -131,7 +131,7 @@ class _SignUpState extends State<SignUp> {
                             validator: (val) {
                               return (val.trim().length > 0)
                                   ? null
-                                  : "You Have A Name Right ?";
+                                  : "You Have A Name Right?";
                             },
                             minLines: 1,
                             controller: usernameEditingController,
