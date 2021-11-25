@@ -11,9 +11,9 @@
   - User(s) can have pseudo names instead of real names for anonymity
   - Messages auto delete after time decided by the sender once the message is seen by the receiver(s) (dissapearing messages)
   - For groups the dissaapearing duration will be fixed by the admin
-  - Messages are stored locally on a SQL database as per users' prefrence
+  - Messages are stored locally on a SQL database as per users' preference
   - Lock screen
-  - Every user has their own base11 digital fingerprint
+  - Every user has their own digital fingerprint
 
 ## Misc.
  - App is opensource
