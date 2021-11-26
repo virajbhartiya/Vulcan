@@ -148,6 +148,7 @@ class _ChatState extends State<Chat> with TickerProviderStateMixin {
     setState(() {
       messagesList = msgList;
     });
+    return msgList;
   }
 
   Future updateList(msg, docID) async {
@@ -169,11 +170,16 @@ class _ChatState extends State<Chat> with TickerProviderStateMixin {
             message: msg["message"],
             mediaType: msg["mediaType"],
             mediaUrl: msg["mediaUrl"]);
-        if (!messagesList.contains(message)) {
-          messagesList.add(message);
-          db.insertMessage(message).then((value) async {});
-        }
-        // await fetchMessages();
+        print(message);
+        await fetchMessages().then((value) {
+          if (!value.contains(message)) {
+            db.insertMessage(message).then((_) {
+              setState(() {
+                messagesList.add(message);
+              });
+            });
+          }
+        });
       }
     } catch (e) {
       print(e);
@@ -198,8 +204,27 @@ class _ChatState extends State<Chat> with TickerProviderStateMixin {
                         try {
                           fetchMessages();
                           if (db != null) {
-                            updateList(snapshot.data.documents[index].data,
-                                snapshot.data.documents[index].documentID);
+                            Message messg = new Message(
+                                username: Constants.myName ==
+                                        snapshot.data.documents[index]
+                                            .data["sendBy"]
+                                    ? sender
+                                    : snapshot
+                                        .data.documents[index].data["sendBy"],
+                                sender: snapshot
+                                    .data.documents[index].data["sendBy"],
+                                time:
+                                    snapshot.data.documents[index].data["time"],
+                                message: snapshot
+                                    .data.documents[index].data["message"],
+                                mediaType: snapshot
+                                    .data.documents[index].data["mediaType"],
+                                mediaUrl: snapshot
+                                    .data.documents[index].data["mediaUrl"]);
+                            if (!messagesList.contains(messg)) {
+                              updateList(snapshot.data.documents[index].data,
+                                  snapshot.data.documents[index].documentID);
+                            }
                           } else {
                             db = new DatabaseSQL(sender);
                           }
@@ -245,8 +270,9 @@ class _ChatState extends State<Chat> with TickerProviderStateMixin {
                           progressIndicatorBuilder:
                               (context, url, downloadProgress) {
                             return Center(
-                                child: CircularProgressIndicator(
-                                    value: downloadProgress.progress));
+                              child: CircularProgressIndicator(
+                                  value: downloadProgress.progress),
+                            );
                           }),
                     ),
                   );
