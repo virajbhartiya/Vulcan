@@ -15,10 +15,6 @@ Future<File> compressImage(File file) async {
     file.absolute.path + "\\images\\compressed.jpg",
     quality: 70,
   );
-  print("###########################");
-  print(file.lengthSync());
-  print(result.lengthSync());
-  print("###########################");
 
   return result;
 }

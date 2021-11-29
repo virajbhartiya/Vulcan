@@ -8,9 +8,7 @@ class DatabaseSQL {
   String username;
   DatabaseSQL(username) {
     this.username = username;
-    init(this.username).then((_) {
-      print("DatabaseSQL: Database initialized");
-    });
+    init(this.username);
   }
 
   init(username) async {
