@@ -1,119 +1,103 @@
 import 'package:shared_preferences/shared_preferences.dart';
 
 class SharedPrefFunctions {
-  static String sharedPreferenceUserLoggedInKey = "ISLOGGEDIN";
-  static String sharedPreferenceUserNameKey = "USERNAMEKEY";
-  static String sharedPreferenceUserEmailKey = "USEREMAILKEY";
-  static String sharedPreferenceUserPassKey = "USEREPASSKEY";
-  static String sharedPreferencePinKey = "PIN";
-  static String sharedPreferenceGoogleIndexKey = "GOOGELSHEETINDEXKEY";
-  static String sharedPreferencePinEnabledKey = "PINENABLEDKEY";
-  static String sharedPreferenceUidKey = "UIDKEY";
-  static String sharedPreferenceDecryptKey = "DECRYPTKEY";
+  static String loginStateKey = "LOGINSTATEKEY";
+  static String usernameKey = "USERNAMEKEY";
+  static String emailIDKey = "EMAILIDKEY";
+  static String passwordKey = "PASSWORDKEY";
+  static String pinKey = "PINKEY";
+  static String pinStateKey = "PINSTATEKEY";
+  static String uidKey = "UIDKEY";
+  static String decryptKeyKey = "DECRYPTKEYKEY";
 
   // saving data to sharedpreference
-  static Future<bool> saveUserLoggedInSharedPreference(
-      bool isUserLoggedIn) async {
+  static Future<bool> saveLoginState(bool isUserLoggedIn) async {
     SharedPreferences preferences = await SharedPreferences.getInstance();
-    return await preferences.setBool(
-        sharedPreferenceUserLoggedInKey, isUserLoggedIn);
+    return await preferences.setBool(loginStateKey, isUserLoggedIn);
   }
 
-  static Future<bool> saveUserNameSharedPreference(String userName) async {
+  static Future<bool> saveUsername(String userName) async {
     SharedPreferences preferences = await SharedPreferences.getInstance();
-    return await preferences.setString(sharedPreferenceUserNameKey, userName);
+    return await preferences.setString(usernameKey, userName);
   }
 
-  static Future<bool> saveUidSharedPreference(String uid) async {
+  static Future<bool> saveUID(String uid) async {
     SharedPreferences preferences = await SharedPreferences.getInstance();
-    return await preferences.setString(sharedPreferenceUidKey, uid);
+    return await preferences.setString(uidKey, uid);
   }
 
-  static Future<bool> saveUserEmailSharedPreference(String email) async {
+  static Future<bool> saveEmailID(String email) async {
     SharedPreferences preferences = await SharedPreferences.getInstance();
-    return await preferences.setString(sharedPreferenceUserEmailKey, email);
+    return await preferences.setString(emailIDKey, email);
   }
 
-  static Future<bool> saveUserPassSharedPreference(String userPass) async {
+  static Future<bool> savePassword(String userPass) async {
     SharedPreferences preferences = await SharedPreferences.getInstance();
-    return await preferences.setString(sharedPreferenceUserPassKey, userPass);
+    return await preferences.setString(passwordKey, userPass);
   }
 
   static Future<bool> savePin(String pin) async {
     SharedPreferences preferences = await SharedPreferences.getInstance();
-    return await preferences.setString(sharedPreferencePinKey, pin);
+    return await preferences.setString(pinKey, pin);
   }
 
-  static Future<bool> saveGoogleSheetIndexSharedPreference(String index) async {
+  static Future<bool> savePinState(bool index) async {
     SharedPreferences preferences = await SharedPreferences.getInstance();
-    return await preferences.setString(sharedPreferenceGoogleIndexKey, index);
+    return await preferences.setBool(pinStateKey, index);
   }
 
-  static Future<bool> savePinEnabledSharedPreference(bool index) async {
+  static Future<bool> saveDecryptKey(String deviceFingerprint) async {
     SharedPreferences preferences = await SharedPreferences.getInstance();
-    return await preferences.setBool(sharedPreferencePinEnabledKey, index);
-  }
-
-  static Future<bool> saveDecryptKeySharedPreference(
-      String deviceFingerprint) async {
-    SharedPreferences preferences = await SharedPreferences.getInstance();
-    return await preferences.setString(
-        sharedPreferenceDecryptKey, deviceFingerprint);
+    return await preferences.setString(decryptKeyKey, deviceFingerprint);
   }
 
   /// fetching data from sharedpreference
 
-  static Future<bool> getUserLoggedInSharedPreference() async {
+  static Future<bool> getLoginState() async {
     SharedPreferences preferences = await SharedPreferences.getInstance();
     // ignore: await_only_futures
-    return await preferences.getBool(sharedPreferenceUserLoggedInKey);
+    return await preferences.getBool(loginStateKey);
   }
 
-  static Future<String> getUserNameSharedPreference() async {
+  static Future<String> getUsername() async {
     SharedPreferences preferences = await SharedPreferences.getInstance();
     // ignore: await_only_futures
-    return await preferences.getString(sharedPreferenceUserNameKey);
+    return await preferences.getString(usernameKey);
   }
 
-  static Future<String> getUidSharedPreference() async {
+  static Future<String> getUID() async {
     SharedPreferences preferences = await SharedPreferences.getInstance();
     // ignore: await_only_futures
-    return await preferences.getString(sharedPreferenceUidKey);
+    return await preferences.getString(uidKey);
   }
 
-  static Future<String> getUserPassSharedPreference() async {
+  static Future<String> getPassword() async {
     SharedPreferences preferences = await SharedPreferences.getInstance();
     // ignore: await_only_futures
-    return await preferences.getString(sharedPreferenceUserPassKey);
+    return await preferences.getString(passwordKey);
   }
 
-  static Future<String> getUserEmailSharedPreference() async {
+  static Future<String> getEmailID() async {
     SharedPreferences preferences = await SharedPreferences.getInstance();
     // ignore: await_only_futures
-    return await preferences.getString(sharedPreferenceUserEmailKey);
+    return await preferences.getString(emailIDKey);
   }
 
   static Future<String> getPin() async {
     SharedPreferences preferences = await SharedPreferences.getInstance();
     // ignore: await_only_futures
-    return await preferences.getString(sharedPreferencePinKey);
+    return await preferences.getString(pinKey);
   }
 
-  static Future<String> getGoogleSheetIndexSharedPreference() async {
+  static Future<bool> getPinState() async {
     SharedPreferences preferences = await SharedPreferences.getInstance();
     // ignore: await_only_futures
-    return await preferences.getString(sharedPreferenceGoogleIndexKey);
+    return await preferences.getBool(pinStateKey);
   }
 
-  static Future<bool> getPinEnabledSharedPreference() async {
+  static Future<String> getDecryptKey() async {
     SharedPreferences preferences = await SharedPreferences.getInstance();
     // ignore: await_only_futures
-    return await preferences.getBool(sharedPreferencePinEnabledKey);
-  }
-
-  static Future<String> getDecryptKeySharedPreference() async {
-    SharedPreferences preferences = await SharedPreferences.getInstance();
-    // ignore: await_only_futures
-    return await preferences.getString(sharedPreferenceDecryptKey);
+    return await preferences.getString(decryptKeyKey);
   }
 }

@@ -38,8 +38,7 @@ class _SettingsState extends State<Settings> {
   }
 
   getValues() async {
-    bool val =
-        (await SharedPrefFunctions.getPinEnabledSharedPreference()) ?? false;
+    bool val = (await SharedPrefFunctions.getPinState()) ?? false;
     currentPin = await SharedPrefFunctions.getPin();
     setState(() {
       currentPin = currentPin;
@@ -100,8 +99,7 @@ class _SettingsState extends State<Settings> {
   }
 
   changeValues() async {
-    await SharedPrefFunctions.savePinEnabledSharedPreference(!enabled)
-        .then((value) {
+    await SharedPrefFunctions.savePinState(!enabled).then((value) {
       setState(() {
         enabled = !enabled;
         pinController.text = "";
@@ -179,13 +177,11 @@ class _SettingsState extends State<Settings> {
                                                           .backgroundColor),
                                             ),
                                             onPressed: () {
-                                              SharedPrefFunctions
-                                                  .savePinEnabledSharedPreference(
-                                                      false);
+                                              SharedPrefFunctions.savePinState(
+                                                  false);
                                               // AuthService().signOut();
                                               SharedPrefFunctions
-                                                  .saveUserLoggedInSharedPreference(
-                                                      false);
+                                                  .saveLoginState(false);
                                               Navigator.pushReplacement(
                                                 context,
                                                 MaterialPageRoute(

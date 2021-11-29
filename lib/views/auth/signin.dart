@@ -108,10 +108,10 @@ class _SignInState extends State<SignIn> {
                     showToast("uuid added");
                   });
                 }
-                SharedPrefFunctions.saveUserLoggedInSharedPreference(true);
-                SharedPrefFunctions.saveUserNameSharedPreference(
+                SharedPrefFunctions.saveLoginState(true);
+                SharedPrefFunctions.saveUsername(
                     usernameEditingController.text);
-                SharedPrefFunctions.saveDecryptKeySharedPreference(decryptKey);
+                SharedPrefFunctions.saveDecryptKey(decryptKey);
                 Navigator.pushReplacement(
                     context, MaterialPageRoute(builder: (context) => Home()));
               } else {

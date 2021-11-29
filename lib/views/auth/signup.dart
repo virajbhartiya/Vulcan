@@ -107,15 +107,12 @@ class _SignUpState extends State<SignUp> {
           "decryptKey": decryptKey,
           "fingerprints": FieldValue.arrayUnion([decryptKey]),
         });
-        SharedPrefFunctions.saveDecryptKeySharedPreference(decryptKey);
-        SharedPrefFunctions.saveUserLoggedInSharedPreference(true);
-        SharedPrefFunctions.saveUserNameSharedPreference(
-            usernameEditingController.text);
-        SharedPrefFunctions.saveUidSharedPreference(uid);
-        SharedPrefFunctions.saveUserEmailSharedPreference(
-            emailEditingController.text);
-        SharedPrefFunctions.saveUserPassSharedPreference(
-            passwordEditingController.text);
+        SharedPrefFunctions.saveDecryptKey(decryptKey);
+        SharedPrefFunctions.saveLoginState(true);
+        SharedPrefFunctions.saveUsername(usernameEditingController.text);
+        SharedPrefFunctions.saveUID(uid);
+        SharedPrefFunctions.saveEmailID(emailEditingController.text);
+        SharedPrefFunctions.savePassword(passwordEditingController.text);
         Navigator.pushReplacement(
             context, MaterialPageRoute(builder: (context) => Home()));
       } else {

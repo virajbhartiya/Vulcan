@@ -32,7 +32,7 @@ class _MyAppState extends State<MyApp> {
   }
 
   Future getLoggedInState() async {
-    await SharedPrefFunctions.getUserLoggedInSharedPreference().then((value) {
+    await SharedPrefFunctions.getLoginState().then((value) {
       setState(() {
         userIsLoggedIn = value;
       });
