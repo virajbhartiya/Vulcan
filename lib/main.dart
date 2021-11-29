@@ -1,3 +1,4 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'consts.dart';
 import 'helper/authenticate.dart';
@@ -17,10 +18,22 @@ class MyApp extends StatefulWidget {
 class _MyAppState extends State<MyApp> {
   bool userIsLoggedIn;
   bool lockScreenEnabled;
+  FirebaseAuth mAuth = FirebaseAuth.instance;
+
+  Future _signInAnonymously() async {
+    mAuth.signInAnonymously().then((_) async {
+      print("Signied In Anonymasly");
+    }).catchError((e) {
+      print('Error: $e');
+    });
+  }
 
   @override
   void initState() {
     getLoggedInState();
+    _signInAnonymously()
+        .then((_) => print("done"))
+        .catchError((e) => print("error"));
     super.initState();
   }
 

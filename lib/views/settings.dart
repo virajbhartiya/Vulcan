@@ -181,7 +181,9 @@ class _SettingsState extends State<Settings> {
                                                   .savePinEnabledSharedPreference(
                                                       false);
                                               // AuthService().signOut();
-
+                                              SharedPrefFunctions
+                                                  .saveUserLoggedInSharedPreference(
+                                                      false);
                                               Navigator.pushReplacement(
                                                 context,
                                                 MaterialPageRoute(

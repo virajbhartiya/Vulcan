@@ -135,16 +135,25 @@ class _WallState extends State<Wall> {
                     color: Colors.blue,
                     borderRadius: BorderRadius.circular(60),
                   ),
-                  child: CachedNetworkImage(
-                    height: 70,
-                    width: 70,
-                    imageUrl: proPic,
-                    fit: BoxFit.fill,
-                    progressIndicatorBuilder:
-                        (context, url, downloadProgress) =>
-                            CircularProgressIndicator(
-                                value: downloadProgress.progress),
-                  )),
+                  child: proPic == ""
+                      ? Container(
+                          child: Center(
+                            child: Text(
+                              Constants.myName.substring(0, 1).toUpperCase(),
+                              style: TextStyle(fontSize: 50),
+                            ),
+                          ),
+                        )
+                      : CachedNetworkImage(
+                          height: 70,
+                          width: 70,
+                          imageUrl: proPic,
+                          fit: BoxFit.fill,
+                          progressIndicatorBuilder:
+                              (context, url, downloadProgress) =>
+                                  CircularProgressIndicator(
+                                      value: downloadProgress.progress),
+                        )),
             ),
             SizedBox(
               height: 20,

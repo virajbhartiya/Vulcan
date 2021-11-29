@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'dart:math';
+import 'package:chatapp/views/auth/chooseProPic.dart';
 import 'package:device_info/device_info.dart';
 import 'package:flutter/services.dart';
 import '../../funcitons.dart';
@@ -12,8 +13,6 @@ import '../../helper/firebase_helper.dart';
 import '../../widget/widget.dart';
 import 'dart:convert';
 import 'package:fluttertoast/fluttertoast.dart';
-
-import '../home.dart';
 
 class SignUp extends StatefulWidget {
   final Function toggleView;
@@ -119,7 +118,7 @@ class _SignUpState extends State<SignUp> {
         SharedPrefFunctions.saveUserPassSharedPreference(
             passwordEditingController.text);
         Navigator.pushReplacement(
-            context, MaterialPageRoute(builder: (context) => Home()));
+            context, MaterialPageRoute(builder: (context) => ChooseProPic()));
       } else {
         setState(() {
           isLoading = false;
