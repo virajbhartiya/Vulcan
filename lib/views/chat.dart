@@ -72,13 +72,13 @@ class _ChatState extends State<Chat> with TickerProviderStateMixin {
         .get()
         .then((value) {
       setState(() {
-        decryptKey = value.data['deviceFingerprint'];
+        decryptKey = value.data['decryptKey'];
       });
     });
   }
 
   String encryptMessage(value) {
-    final key = encrypt.Key.fromUtf8(Constants.deviceFingerprint);
+    final key = encrypt.Key.fromUtf8(Constants.decryptKey);
     final iv = encrypt.IV.fromLength(16);
     final encrypter = encrypt.Encrypter(encrypt.AES(key));
     final encrypted = encrypter

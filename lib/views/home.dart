@@ -64,8 +64,8 @@ class _HomeState extends State<Home> {
   getUserInfogetChats() async {
     Constants.myName = await SharedPrefFunctions.getUserNameSharedPreference();
     Constants.uid = await SharedPrefFunctions.getUidSharedPreference();
-    Constants.deviceFingerprint =
-        await SharedPrefFunctions.getDeviceFingerprintSharedPreference();
+    Constants.decryptKey =
+        await SharedPrefFunctions.getDecryptKeySharedPreference();
     DatabaseMethods().getUserChats(Constants.myName).then(
       (snapshots) {
         setState(

@@ -29,7 +29,7 @@ class _SignUpState extends State<SignUp> {
   TextEditingController emailEditingController = new TextEditingController();
   TextEditingController passwordEditingController = new TextEditingController();
   TextEditingController usernameEditingController = new TextEditingController();
-  String deviceFingerprint;
+  String decryptKey;
   // AuthService authService = new AuthService();
   DatabaseMethods databaseMethods = new DatabaseMethods();
   final formKey = GlobalKey<FormState>();
@@ -54,21 +54,21 @@ class _SignUpState extends State<SignUp> {
         setState(() {
           deviceName = build.model;
           deviceVersion = build.version.toString();
-          deviceFingerprint = build.androidId; //UUID for Android
+          decryptKey = build.androidId; //UUID for Android
         });
       } else if (Platform.isIOS) {
         var data = await deviceInfoPlugin.iosInfo;
         setState(() {
           deviceName = data.name;
           deviceVersion = data.systemVersion;
-          deviceFingerprint = data.identifierForVendor; //UUID for iOS
+          decryptKey = data.identifierForVendor; //UUID for iOS
         });
       }
     } on PlatformException {
       print('Failed to get platform version');
     }
 
-    return [deviceName, deviceVersion, deviceFingerprint];
+    return [deviceName, deviceVersion, decryptKey];
   }
 
   Future<bool> usernameExists(String name) async {
@@ -106,10 +106,9 @@ class _SignUpState extends State<SignUp> {
           "timestamp": DateTime.now().millisecondsSinceEpoch,
           "uid": uid,
           "profilePic": "",
-          "deviceFingerprint": deviceFingerprint,
+          "decryptKey": decryptKey,
         });
-        SharedPrefFunctions.saveDeviceFingerprintSharedPreference(
-            deviceFingerprint);
+        SharedPrefFunctions.saveDecryptKeySharedPreference(decryptKey);
         SharedPrefFunctions.saveUserLoggedInSharedPreference(true);
         SharedPrefFunctions.saveUserNameSharedPreference(
             usernameEditingController.text);
