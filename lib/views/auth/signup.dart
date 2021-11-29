@@ -13,6 +13,7 @@ import '../../helper/firebase_helper.dart';
 import '../../widget/widget.dart';
 import 'dart:convert';
 import 'package:fluttertoast/fluttertoast.dart';
+import '../home.dart';
 
 class SignUp extends StatefulWidget {
   final Function toggleView;
@@ -118,7 +119,7 @@ class _SignUpState extends State<SignUp> {
         SharedPrefFunctions.saveUserPassSharedPreference(
             passwordEditingController.text);
         Navigator.pushReplacement(
-            context, MaterialPageRoute(builder: (context) => ChooseProPic()));
+            context, MaterialPageRoute(builder: (context) => Home()));
       } else {
         setState(() {
           isLoading = false;
