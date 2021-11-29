@@ -14,7 +14,7 @@ class Search extends StatefulWidget {
 }
 
 class _SearchState extends State<Search> {
-  DatabaseMethods databaseMethods = new DatabaseMethods();
+  FirebaseMethods databaseMethods = new FirebaseMethods();
   TextEditingController searchEditingController = new TextEditingController();
   QuerySnapshot searchResultSnapshot;
 

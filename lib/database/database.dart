@@ -4,11 +4,13 @@ import 'dart:async';
 import '../models/message.dart';
 
 class DatabaseSQL {
-  static Database database;
+  Database database;
   String username;
   DatabaseSQL(username) {
     this.username = username;
-    init(this.username);
+    init(this.username).then((_) {
+      print("DatabaseSQL: Database initialized");
+    });
   }
 
   init(username) async {
@@ -24,17 +26,16 @@ class DatabaseSQL {
   }
 
   Future<void> insertMessage(Message message) async {
-    final db = database;
-    await db.insert(
-      message.username,
-      message.toMap(),
-      conflictAlgorithm: ConflictAlgorithm.abort,
-    );
+    if (database != null)
+      await database.insert(
+        message.username,
+        message.toMap(),
+        conflictAlgorithm: ConflictAlgorithm.replace,
+      );
   }
 
   Future<List<Message>> getMessages(String username) async {
-    final db = database;
-    final List<Map<String, dynamic>> maps = await db.query(username);
+    final List<Map<String, dynamic>> maps = await database.query(username);
     return List.generate(maps.length, (i) {
       return Message(
         message: maps[i]['message'],
@@ -47,18 +48,16 @@ class DatabaseSQL {
     });
   }
 
-  Future<void> deleteMessages(int id, String username) async {
-    final db = database;
-    await db.delete(
+  Future<void> deleteMessages(int time, String username) async {
+    await database.delete(
       username,
-      where: 'id = ?',
-      whereArgs: [id],
+      where: 'time = ?',
+      whereArgs: [time],
     );
   }
 
   Future<Message> getLastMessage(String username) async {
-    final db = database;
-    final List<Map<String, dynamic>> maps = await db.query(username);
+    final List<Map<String, dynamic>> maps = await database.query(username);
     return Message(
       time: maps[maps.length - 1]['time'],
       message: maps[maps.length - 1]['message'],

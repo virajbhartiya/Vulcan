@@ -29,7 +29,7 @@ class _SignUpState extends State<SignUp> {
   TextEditingController usernameEditingController = new TextEditingController();
   String decryptKey;
   // AuthService authService = new AuthService();
-  DatabaseMethods databaseMethods = new DatabaseMethods();
+  FirebaseMethods databaseMethods = new FirebaseMethods();
   final formKey = GlobalKey<FormState>();
   bool isLoading = false;
   Codec<String, String> stringToBase64 = utf8.fuse(base64);

@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:chatapp/funcitons.dart';
 import 'package:chatapp/views/wall.dart';
 import 'package:chatapp/widget/messageTile.dart';
 import 'package:firebase_storage/firebase_storage.dart';
@@ -50,18 +51,23 @@ class _ChatState extends State<Chat> with TickerProviderStateMixin {
           ? widget.chatRoomId.substring(widget.chatRoomId.indexOf('_') + 1)
           : widget.chatRoomId.substring(0, widget.chatRoomId.indexOf('_'));
     });
+    db = new DatabaseSQL(sender);
+    fetchMessages().then((value) {
+      setState(() {
+        messagesList = value;
+      });
+    });
+
     _scrollController = ScrollController(
       initialScrollOffset: 0.0,
       keepScrollOffset: true,
     );
-    DatabaseMethods().getChats(widget.chatRoomId).then((val) {
+    FirebaseMethods().getChats(widget.chatRoomId).then((val) {
       setState(() {
         chats = val;
       });
     });
-    getDecryptKey().then((_) {
-      setState(() {});
-    });
+    getDecryptKey();
     super.initState();
   }
 
@@ -104,13 +110,13 @@ class _ChatState extends State<Chat> with TickerProviderStateMixin {
         pickedFile = await picker.getImage(source: ImageSource.gallery);
         break;
     }
-
     setState(() {
       uploading = true;
       _imageFile = File(pickedFile.path);
-
-      uploadImageToFirebase(context);
     });
+    _imageFile = await compressImage(_imageFile);
+    setState(() {});
+    uploadImageToFirebase(context);
   }
 
   void draw() {
@@ -143,12 +149,14 @@ class _ChatState extends State<Chat> with TickerProviderStateMixin {
   }
 
   Future fetchMessages() async {
-    db = new DatabaseSQL(sender);
-    var msgList = await db.getMessages(sender);
-    setState(() {
-      messagesList = msgList;
-    });
-    return msgList;
+    if (db != null) {
+      await db.getMessages(sender).then((value) {
+        setState(() {
+          messagesList = value;
+        });
+        return value;
+      });
+    }
   }
 
   Future updateList(msg, docID) async {
@@ -164,25 +172,19 @@ class _ChatState extends State<Chat> with TickerProviderStateMixin {
             message: msg["message"],
             mediaType: msg["mediaType"],
             mediaUrl: msg["mediaUrl"]);
-        print(message);
-        await fetchMessages().then((value) {
-          if (!value.contains(message)) {
-            db.insertMessage(message).then((_) {
-              setState(() {
-                messagesList.add(message);
-              });
+        if (!messagesList.contains(message)) {
+          await db.insertMessage(message).then((_) {
+            setState(() {
+              messagesList.add(message);
             });
-          }
-        });
+          });
+        }
         await Firestore.instance
             .collection("chatRoom")
             .document(widget.chatRoomId)
             .collection("chats")
             .document(docID)
-            .delete()
-            .then((_) {
-          setState(() {});
-        });
+            .delete();
       }
     } catch (e) {
       print(e);
@@ -197,16 +199,17 @@ class _ChatState extends State<Chat> with TickerProviderStateMixin {
           StreamBuilder(
             stream: chats,
             builder: (context, snapshot) {
-              fetchMessages();
+              // fetchMessages();
               return snapshot.hasData
                   ? ListView.builder(
                       shrinkWrap: true,
                       controller: _scrollController,
                       itemCount: snapshot.data.documents.length,
                       itemBuilder: (context, index) {
+                        fetchMessages();
                         try {
-                          fetchMessages();
-                          if (db != null) {
+                          if (!(Constants.myName ==
+                              snapshot.data.documents[index].data["sendBy"])) {
                             Message messg = new Message(
                                 username: Constants.myName ==
                                         snapshot.data.documents[index]
@@ -228,8 +231,6 @@ class _ChatState extends State<Chat> with TickerProviderStateMixin {
                               updateList(snapshot.data.documents[index].data,
                                   snapshot.data.documents[index].documentID);
                             }
-                          } else {
-                            db = new DatabaseSQL(sender);
                           }
                         } catch (e) {
                           print(e);
@@ -249,7 +250,6 @@ class _ChatState extends State<Chat> with TickerProviderStateMixin {
               controller: _scrollController,
               itemCount: messagesList.length ?? 0,
               itemBuilder: (context, index) {
-                fetchMessages();
                 if ((messagesList[index].mediaType ?? "none") == "none") {
                   return MessageTile(
                       message: decryptMessage(messagesList[index].message),
@@ -307,7 +307,7 @@ class _ChatState extends State<Chat> with TickerProviderStateMixin {
         "mediaType": "photo",
         "mediaUrl": encryptMessage(imageUrl),
       };
-      DatabaseMethods().addMessage(widget.chatRoomId, chatMessageMap);
+      FirebaseMethods().addMessage(widget.chatRoomId, chatMessageMap);
       setState(() {
         imageUrl = null;
         first = false;
@@ -336,7 +336,7 @@ class _ChatState extends State<Chat> with TickerProviderStateMixin {
         "mediaType": "none",
         "mediaUrl": "",
       };
-      DatabaseMethods().addMessage(widget.chatRoomId, chatMessageMap);
+      FirebaseMethods().addMessage(widget.chatRoomId, chatMessageMap);
       setState(() {
         messageEditingController.text = "";
         first = false;

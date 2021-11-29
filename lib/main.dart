@@ -21,19 +21,13 @@ class _MyAppState extends State<MyApp> {
   FirebaseAuth mAuth = FirebaseAuth.instance;
 
   Future _signInAnonymously() async {
-    mAuth.signInAnonymously().then((_) async {
-      print("Signied In Anonymasly");
-    }).catchError((e) {
-      print('Error: $e');
-    });
+    mAuth.signInAnonymously();
   }
 
   @override
   void initState() {
     getLoggedInState();
-    _signInAnonymously()
-        .then((_) => print("done"))
-        .catchError((e) => print("error"));
+    _signInAnonymously();
     super.initState();
   }
 
