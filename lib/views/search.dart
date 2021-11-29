@@ -47,6 +47,8 @@ class _SearchState extends State<Search> {
             shrinkWrap: true,
             itemCount: searchResultSnapshot.documents.length,
             itemBuilder: (context, index) {
+              if (searchResultSnapshot.documents[index].data["username"] ==
+                  Constants.myName) return Container();
               return InkWell(
                 onTap: () {
                   sendMessage(
@@ -61,7 +63,6 @@ class _SearchState extends State<Search> {
         : Container();
   }
 
-  /// 1.create a chatroom, send user to the chatroom, other userdetails
   sendMessage(String userName) {
     List<String> users = [Constants.myName, userName];
 
