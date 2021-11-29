@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:chatapp/funcitons.dart';
 import 'package:chatapp/helper/authenticate.dart';
 
 import 'package:chatapp/helper/sharedPrefFuncitons.dart';
@@ -86,9 +87,10 @@ class _SettingsState extends State<Settings> {
     setState(() {
       uploading = true;
       _imageFile = File(pickedFile.path);
-
-      uploadImageToFirebase(context);
     });
+    _imageFile = await compressImage(_imageFile);
+    setState(() {});
+    uploadImageToFirebase(context);
   }
 
   changeProPic() {

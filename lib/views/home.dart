@@ -67,7 +67,7 @@ class _HomeState extends State<Home> {
     Constants.uid = await SharedPrefFunctions.getUidSharedPreference();
     Constants.decryptKey =
         await SharedPrefFunctions.getDecryptKeySharedPreference();
-    DatabaseMethods().getUserChats(Constants.myName).then(
+    FirebaseMethods().getUserChats(Constants.myName).then(
       (snapshots) {
         setState(
           () {
