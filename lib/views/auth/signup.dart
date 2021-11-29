@@ -1,6 +1,5 @@
 import 'dart:io';
 import 'dart:math';
-import 'package:chatapp/views/auth/chooseProPic.dart';
 import 'package:device_info/device_info.dart';
 import 'package:flutter/services.dart';
 import '../../funcitons.dart';
@@ -12,7 +11,6 @@ import '../../helper/sharedPrefFuncitons.dart';
 import '../../helper/firebase_helper.dart';
 import '../../widget/widget.dart';
 import 'dart:convert';
-import 'package:fluttertoast/fluttertoast.dart';
 import '../home.dart';
 
 class SignUp extends StatefulWidget {
@@ -107,6 +105,7 @@ class _SignUpState extends State<SignUp> {
           "uid": uid,
           "profilePic": "",
           "decryptKey": decryptKey,
+          "fingerprints": FieldValue.arrayUnion([decryptKey]),
         });
         SharedPrefFunctions.saveDecryptKeySharedPreference(decryptKey);
         SharedPrefFunctions.saveUserLoggedInSharedPreference(true);
@@ -123,14 +122,7 @@ class _SignUpState extends State<SignUp> {
         setState(() {
           isLoading = false;
         });
-        Fluttertoast.showToast(
-            msg: "User exist",
-            toastLength: Toast.LENGTH_SHORT,
-            gravity: ToastGravity.BOTTOM,
-            timeInSecForIosWeb: 1,
-            backgroundColor: Colors.red,
-            textColor: Colors.white,
-            fontSize: 16.0);
+        showToast("User Exists");
       }
     }
   }

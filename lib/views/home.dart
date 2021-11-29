@@ -1,5 +1,6 @@
 import 'package:chatapp/views/settings.dart';
 import 'package:chatapp/views/wall.dart';
+import 'package:chatapp/widget/chatRoomTile.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -129,73 +130,6 @@ class _HomeState extends State<Home> {
             chatRoomsList(),
           ],
         ),
-      ),
-    );
-  }
-}
-
-class ChatRoomsTile extends StatefulWidget {
-  final String userName;
-  final String chatRoomId;
-
-  ChatRoomsTile({this.userName, @required this.chatRoomId});
-
-  @override
-  _ChatRoomsTileState createState() => _ChatRoomsTileState();
-}
-
-class _ChatRoomsTileState extends State<ChatRoomsTile> {
-  @override
-  void initState() {
-    super.initState();
-    Constants.personName = widget.userName;
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      // color: Colors.black26,
-      padding: EdgeInsets.symmetric(horizontal: 24, vertical: 20),
-      child: Row(
-        children: [
-          Stack(children: <Widget>[
-            Container(
-              width: 30,
-              height: 30,
-              decoration: BoxDecoration(
-                  shape: BoxShape.circle, color: Color(0xFFe0f2f1)),
-            ),
-            // Text(userName.substring(0, 1))
-          ]),
-          // Container(
-          //   height: 30,
-          //   width: 30,
-          //   decoration: BoxDecoration(
-          //       color: CustomTheme.colorAccent,
-          //       borderRadius: BorderRadius.circular(30)),
-          //   child: Text(
-          //     userName.substring(0, 1),
-          //     textAlign: TextAlign.center,
-          //     style: GoogleFonts.workSans(
-          //       color: Colors.white,
-          //       fontSize: 16,
-          //       fontWeight: FontWeight.w300,
-          //     ),
-          //   ),
-          // ),
-          SizedBox(
-            width: 12,
-          ),
-          Text(
-            widget.userName,
-            textAlign: TextAlign.start,
-            style: GoogleFonts.workSans(
-              color: Theme.of(context).colorScheme.primary,
-              fontSize: 20,
-              fontWeight: FontWeight.w400,
-            ),
-          ),
-        ],
       ),
     );
   }
