@@ -9,7 +9,7 @@ class SharedPrefFunctions {
   static String sharedPreferenceGoogleIndexKey = "GOOGELSHEETINDEXKEY";
   static String sharedPreferencePinEnabledKey = "PINENABLEDKEY";
   static String sharedPreferenceUidKey = "UIDKEY";
-  static String sharedPreferenceDeviceFingerprintKey = "DEVICEFINGERPRINTKEY";
+  static String sharedPreferenceDecryptKey = "DECRYPTKEY";
 
   // saving data to sharedpreference
   static Future<bool> saveUserLoggedInSharedPreference(
@@ -54,11 +54,11 @@ class SharedPrefFunctions {
     return await preferences.setBool(sharedPreferencePinEnabledKey, index);
   }
 
-  static Future<bool> saveDeviceFingerprintSharedPreference(
+  static Future<bool> saveDecryptKeySharedPreference(
       String deviceFingerprint) async {
     SharedPreferences preferences = await SharedPreferences.getInstance();
     return await preferences.setString(
-        sharedPreferenceDeviceFingerprintKey, deviceFingerprint);
+        sharedPreferenceDecryptKey, deviceFingerprint);
   }
 
   /// fetching data from sharedpreference
@@ -111,9 +111,9 @@ class SharedPrefFunctions {
     return await preferences.getBool(sharedPreferencePinEnabledKey);
   }
 
-  static Future<String> getDeviceFingerprintSharedPreference() async {
+  static Future<String> getDecryptKeySharedPreference() async {
     SharedPreferences preferences = await SharedPreferences.getInstance();
     // ignore: await_only_futures
-    return await preferences.getString(sharedPreferenceDeviceFingerprintKey);
+    return await preferences.getString(sharedPreferenceDecryptKey);
   }
 }

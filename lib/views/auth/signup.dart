@@ -1,6 +1,5 @@
 import 'dart:io';
 import 'dart:math';
-import 'package:chatapp/views/auth/chooseProPic.dart';
 import 'package:device_info/device_info.dart';
 import 'package:flutter/services.dart';
 import '../../funcitons.dart';
@@ -12,7 +11,6 @@ import '../../helper/sharedPrefFuncitons.dart';
 import '../../helper/firebase_helper.dart';
 import '../../widget/widget.dart';
 import 'dart:convert';
-import 'package:fluttertoast/fluttertoast.dart';
 import '../home.dart';
 
 class SignUp extends StatefulWidget {
@@ -29,7 +27,7 @@ class _SignUpState extends State<SignUp> {
   TextEditingController emailEditingController = new TextEditingController();
   TextEditingController passwordEditingController = new TextEditingController();
   TextEditingController usernameEditingController = new TextEditingController();
-  String deviceFingerprint;
+  String decryptKey;
   // AuthService authService = new AuthService();
   DatabaseMethods databaseMethods = new DatabaseMethods();
   final formKey = GlobalKey<FormState>();
@@ -54,21 +52,21 @@ class _SignUpState extends State<SignUp> {
         setState(() {
           deviceName = build.model;
           deviceVersion = build.version.toString();
-          deviceFingerprint = build.androidId; //UUID for Android
+          decryptKey = build.androidId; //UUID for Android
         });
       } else if (Platform.isIOS) {
         var data = await deviceInfoPlugin.iosInfo;
         setState(() {
           deviceName = data.name;
           deviceVersion = data.systemVersion;
-          deviceFingerprint = data.identifierForVendor; //UUID for iOS
+          decryptKey = data.identifierForVendor; //UUID for iOS
         });
       }
     } on PlatformException {
       print('Failed to get platform version');
     }
 
-    return [deviceName, deviceVersion, deviceFingerprint];
+    return [deviceName, deviceVersion, decryptKey];
   }
 
   Future<bool> usernameExists(String name) async {
@@ -106,10 +104,10 @@ class _SignUpState extends State<SignUp> {
           "timestamp": DateTime.now().millisecondsSinceEpoch,
           "uid": uid,
           "profilePic": "",
-          "deviceFingerprint": deviceFingerprint,
+          "decryptKey": decryptKey,
+          "fingerprints": FieldValue.arrayUnion([decryptKey]),
         });
-        SharedPrefFunctions.saveDeviceFingerprintSharedPreference(
-            deviceFingerprint);
+        SharedPrefFunctions.saveDecryptKeySharedPreference(decryptKey);
         SharedPrefFunctions.saveUserLoggedInSharedPreference(true);
         SharedPrefFunctions.saveUserNameSharedPreference(
             usernameEditingController.text);
@@ -124,14 +122,7 @@ class _SignUpState extends State<SignUp> {
         setState(() {
           isLoading = false;
         });
-        Fluttertoast.showToast(
-            msg: "User exist",
-            toastLength: Toast.LENGTH_SHORT,
-            gravity: ToastGravity.BOTTOM,
-            timeInSecForIosWeb: 1,
-            backgroundColor: Colors.red,
-            textColor: Colors.white,
-            fontSize: 16.0);
+        showToast("User Exists");
       }
     }
   }

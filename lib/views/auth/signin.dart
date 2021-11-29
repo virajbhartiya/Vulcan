@@ -1,7 +1,8 @@
+import 'dart:io';
+import 'package:device_info/device_info.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:fluttertoast/fluttertoast.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../funcitons.dart';
 import '../../helper/sharedPrefFuncitons.dart';
@@ -24,11 +25,13 @@ class _SignInState extends State<SignIn> {
   TextEditingController usernameEditingController = new TextEditingController();
   TextEditingController passwordEditingController = new TextEditingController();
   // AuthService authService = new AuthService();
+  String uuid;
 
   bool isLoading = false;
   @override
   void initState() {
     super.initState();
+    getDeviceDetails();
     SystemChrome.setPreferredOrientations([
       DeviceOrientation.portraitUp,
       DeviceOrientation.portraitDown,
@@ -39,7 +42,35 @@ class _SignInState extends State<SignIn> {
     ));
   }
 
+  Future<List<String>> getDeviceDetails() async {
+    String deviceName;
+    String deviceVersion;
+    final DeviceInfoPlugin deviceInfoPlugin = new DeviceInfoPlugin();
+    try {
+      if (Platform.isAndroid) {
+        var build = await deviceInfoPlugin.androidInfo;
+        setState(() {
+          deviceName = build.model;
+          deviceVersion = build.version.toString();
+          uuid = build.androidId; //UUID for Android
+        });
+      } else if (Platform.isIOS) {
+        var data = await deviceInfoPlugin.iosInfo;
+        setState(() {
+          deviceName = data.name;
+          deviceVersion = data.systemVersion;
+          uuid = data.identifierForVendor; //UUID for iOS
+        });
+      }
+    } on PlatformException {
+      print('Failed to get platform version');
+    }
+
+    return [deviceName, deviceVersion, uuid];
+  }
+
   signIn() async {
+    bool uuidExists;
     if (formKey.currentState.validate()) {
       setState(() {
         isLoading = true;
@@ -56,29 +87,35 @@ class _SignInState extends State<SignIn> {
           snapshot.data.forEach((key, value) async {
             if (key == "password") {
               if (value == hash(passwordEditingController.text)) {
-                String deviceFingerprint = await Firestore.instance
+                String decryptKey = await Firestore.instance
                     .collection("users")
                     .document(usernameEditingController.text)
                     .get()
                     .then((DocumentSnapshot snapshot) {
-                  return snapshot.data["deviceFingerprint"];
+                  setState(() {
+                    uuidExists = snapshot.data["fingerprints"]
+                        .contains(snapshot.data["decryptKey"]);
+                  });
+                  return snapshot.data["decryptKey"];
                 });
+                if (!uuidExists) {
+                  await Firestore.instance
+                      .collection("users")
+                      .document(usernameEditingController.text)
+                      .updateData({
+                    "fingerprints": FieldValue.arrayUnion([uuid])
+                  }).then((_) {
+                    showToast("uuid added");
+                  });
+                }
                 SharedPrefFunctions.saveUserLoggedInSharedPreference(true);
                 SharedPrefFunctions.saveUserNameSharedPreference(
                     usernameEditingController.text);
-                SharedPrefFunctions.saveDeviceFingerprintSharedPreference(
-                    deviceFingerprint);
+                SharedPrefFunctions.saveDecryptKeySharedPreference(decryptKey);
                 Navigator.pushReplacement(
                     context, MaterialPageRoute(builder: (context) => Home()));
               } else {
-                Fluttertoast.showToast(
-                    msg: "Invalid Password",
-                    toastLength: Toast.LENGTH_SHORT,
-                    gravity: ToastGravity.BOTTOM,
-                    timeInSecForIosWeb: 1,
-                    backgroundColor: Colors.red,
-                    textColor: Colors.white,
-                    fontSize: 16.0);
+                showToast("Invalid Password");
                 setState(() {
                   isLoading = false;
                 });

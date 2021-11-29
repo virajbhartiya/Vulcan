@@ -1,7 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-
+import 'package:fluttertoast/fluttertoast.dart';
 import '../consts.dart';
+
+void showToast(message) {
+  Fluttertoast.showToast(
+    msg: message,
+    toastLength: Toast.LENGTH_SHORT,
+    gravity: ToastGravity.BOTTOM,
+    timeInSecForIosWeb: 1,
+    backgroundColor: Colors.red,
+    textColor: Colors.white,
+    fontSize: 16.0,
+  );
+}
 
 Widget appBarMain(BuildContext context) {
   return AppBar(
