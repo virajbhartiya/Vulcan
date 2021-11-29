@@ -156,12 +156,6 @@ class _ChatState extends State<Chat> with TickerProviderStateMixin {
     try {
       if (!(Constants.myName == msg["sendBy"]) && count == 0) {
         count++;
-        await Firestore.instance
-            .collection("chatRoom")
-            .document(widget.chatRoomId)
-            .collection("chats")
-            .document(docID)
-            .delete();
         Message message = new Message(
             username:
                 Constants.myName == msg["sendBy"] ? sender : msg["sendBy"],
@@ -179,6 +173,15 @@ class _ChatState extends State<Chat> with TickerProviderStateMixin {
               });
             });
           }
+        });
+        await Firestore.instance
+            .collection("chatRoom")
+            .document(widget.chatRoomId)
+            .collection("chats")
+            .document(docID)
+            .delete()
+            .then((_) {
+          setState(() {});
         });
       }
     } catch (e) {
