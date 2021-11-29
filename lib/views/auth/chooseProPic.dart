@@ -23,6 +23,7 @@ class _ChooseProPicState extends State<ChooseProPic> {
   final picker = ImagePicker();
 
   Future uploadImageToFirebase(BuildContext context) async {
+    // do your stuff
     String fileName = _imageFile.path.split('/').last;
     StorageReference firebaseStorageRef =
         FirebaseStorage.instance.ref().child('uploads/$fileName');
