@@ -1,10 +1,10 @@
 import 'dart:io';
 
-import 'package:chatapp/funcitons.dart';
-import 'package:chatapp/helper/authenticate.dart';
+import 'package:vulcan/funcitons.dart';
+import 'package:vulcan/helper/authenticate.dart';
 
-import 'package:chatapp/helper/sharedPrefFuncitons.dart';
-// import 'package:chatapp/services/auth.dart';
+import 'package:vulcan/helper/sharedPrefFuncitons.dart';
+// import 'package:vulcan/services/auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:feather_icons_flutter/feather_icons_flutter.dart';
 import 'package:firebase_storage/firebase_storage.dart';

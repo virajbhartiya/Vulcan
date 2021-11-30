@@ -36,7 +36,7 @@ class FirebaseMethods {
     });
   }
 
-  getChats(String chatRoomId) async {
+  getChats(String chatRoomId, sender) async {
     return Firestore.instance
         .collection("chatRoom")
         .document(chatRoomId)

@@ -1,6 +1,6 @@
-import 'package:chatapp/views/settings.dart';
-import 'package:chatapp/views/wall.dart';
-import 'package:chatapp/widget/chatRoomTile.dart';
+import 'package:vulcan/views/settings.dart';
+import 'package:vulcan/views/wall.dart';
+import 'package:vulcan/widget/chatRoomTile.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';

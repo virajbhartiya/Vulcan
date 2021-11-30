@@ -1,17 +1,17 @@
 import 'dart:io';
-import 'package:chatapp/funcitons.dart';
-import 'package:chatapp/views/wall.dart';
-import 'package:chatapp/widget/messageTile.dart';
+import 'package:vulcan/funcitons.dart';
+import 'package:vulcan/views/wall.dart';
+import 'package:vulcan/widget/messageTile.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:chatapp/database/database.dart';
-import 'package:chatapp/models/message.dart';
+import 'package:vulcan/database/database.dart';
+import 'package:vulcan/models/message.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:feather_icons_flutter/feather_icons_flutter.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:chatapp/views/drawing screen/drawing_screen.dart';
+import 'package:vulcan/views/drawing screen/drawing_screen.dart';
 import '../consts.dart';
 import '../helper/firebase_helper.dart';
 import 'package:cached_network_image/cached_network_image.dart';
@@ -62,12 +62,15 @@ class _ChatState extends State<Chat> with TickerProviderStateMixin {
       initialScrollOffset: 0.0,
       keepScrollOffset: true,
     );
-    FirebaseMethods().getChats(widget.chatRoomId).then((val) {
+    FirebaseMethods().getChats(widget.chatRoomId, sender).then((val) {
       setState(() {
         chats = val;
       });
     });
-    getDecryptKey();
+    getDecryptKey().then((_) {
+      print(decryptKey);
+      print(Constants.decryptKey);
+    });
     super.initState();
   }
 
@@ -160,10 +163,8 @@ class _ChatState extends State<Chat> with TickerProviderStateMixin {
   }
 
   Future updateList(msg, docID) async {
-    int count = 0;
     try {
-      if (!(Constants.myName == msg["sendBy"]) && count == 0) {
-        count++;
+      if (!(Constants.myName == msg["sendBy"])) {
         Message message = new Message(
             username:
                 Constants.myName == msg["sendBy"] ? sender : msg["sendBy"],
@@ -252,7 +253,8 @@ class _ChatState extends State<Chat> with TickerProviderStateMixin {
               itemBuilder: (context, index) {
                 if ((messagesList[index].mediaType ?? "none") == "none") {
                   return MessageTile(
-                      message: decryptMessage(messagesList[index].message),
+                      // message: decryptMessage(messagesList[index].message),
+                      message: messagesList[index].message,
                       sendByMe: Constants.myName == messagesList[index].sender);
                 } else {
                   return Container(
@@ -267,8 +269,9 @@ class _ChatState extends State<Chat> with TickerProviderStateMixin {
                       child: CachedNetworkImage(
                           height: 200,
                           width: 200,
-                          imageUrl:
-                              decryptMessage(messagesList[index].mediaUrl),
+                          imageUrl: messagesList[index].mediaUrl,
+                          // imageUrl:
+                          //     decryptMessage(messagesList[index].mediaUrl),
                           fit: BoxFit.cover,
                           progressIndicatorBuilder:
                               (context, url, downloadProgress) {
@@ -297,7 +300,8 @@ class _ChatState extends State<Chat> with TickerProviderStateMixin {
         sender: Constants.myName,
         time: DateTime.now().millisecondsSinceEpoch,
         mediaType: extension,
-        mediaUrl: encryptMessage(value),
+        mediaUrl: value,
+        // mediaUrl: encryptMessage(value),
       );
       await db.insertMessage(message);
       Map<String, dynamic> chatMessageMap = {
@@ -305,7 +309,8 @@ class _ChatState extends State<Chat> with TickerProviderStateMixin {
         "message": "",
         'time': DateTime.now().millisecondsSinceEpoch,
         "mediaType": "photo",
-        "mediaUrl": encryptMessage(imageUrl),
+        "mediaUrl": value,
+        // "mediaUrl": encryptMessage(imageUrl),
       };
       FirebaseMethods().addMessage(widget.chatRoomId, chatMessageMap);
       setState(() {
@@ -314,12 +319,15 @@ class _ChatState extends State<Chat> with TickerProviderStateMixin {
       });
     } else if ((messageEditingController.text.isNotEmpty &&
         messageEditingController.text.trim().length >= 1)) {
-      String msg = encryptMessage(null);
+      // String msg = encryptMessage(messageEditingController.text);
+      String msg = messageEditingController.text;
 
       setState(() {
-        msg = encryptMessage(null);
+        // msg = encryptMessage(messageEditingController.text);
+        msg = messageEditingController.text;
         messageEditingController.text = "";
       });
+      print(msg);
       Message message = new Message(
         message: msg,
         username: sender,

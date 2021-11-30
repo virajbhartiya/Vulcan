@@ -34,6 +34,35 @@
           ]
         }
       }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:519465223727:android:28b300624191d31a6568da",
+        "android_client_info": {
+          "package_name": "com.vulcan"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "519465223727-1k8p5bmq1s6uktbaea7ec7gcurn0i8dp.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCQulrx6ejqpbU6YrG2OdT1WDqJjtDNYfo"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "519465223727-1k8p5bmq1s6uktbaea7ec7gcurn0i8dp.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
     }
   ],
   "configuration_version": "1"

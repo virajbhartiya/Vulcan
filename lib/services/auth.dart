@@ -1,5 +1,5 @@
-// import 'package:chatapp/helper/sharedPrefFuncitons.dart';
-// import 'package:chatapp/models/user.dart';
+// import 'package:vulcan/helper/sharedPrefFuncitons.dart';
+// import 'package:vulcan/models/user.dart';
 // import 'package:firebase_auth/firebase_auth.dart';
 
 // class AuthService {
